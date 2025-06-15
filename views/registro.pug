@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Crear cuenta
+    form(method="POST" action="/registro" enctype="multipart/form-data" class="mt-4")
+      .mb-3
+        label.form-label(for="nombre") Nombre
+        input.form-control(type="text" name="nombre" id="nombre" required)
+      .mb-3
+        label.form-label(for="apellido_paterno") Apellido paterno
+        input.form-control(type="text" name="apellido_paterno" id="apellido_paterno" required)
+      .mb-3
+        label.form-label(for="apellido_materno") Apellido materno
+        input.form-control(type="text" name="apellido_materno" id="apellido_materno" required)
+      .mb-3
+        label.form-label(for="correo") Correo institucional
+        input.form-control(type="email" name="correo" id="correo" required)
+      .mb-3
+        label.form-label(for="carrera") Carrera
+        input.form-control(type="text" name="carrera" id="carrera" required)
+      .mb-3
+        label.form-label(for="password") Contraseña
+        input.form-control(type="password" name="password" id="password" required)
+      .mb-3
+        label.form-label(for="credencial") Adjunta tu credencial escolar
+        input.form-control(type="file" name="credencial" id="credencial" accept="image/*,application/pdf" required)
+      button.btn.btn-primary(type="submit") Registrarse

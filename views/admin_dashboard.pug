@@ -1,0 +1,24 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Dashboard Admin
+    link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
+    style.
+      body { background: #f8f9fa; font-family: 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'; }
+      .dashboard-container { max-width: 1200px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 1.5rem; box-shadow: 0 0 24px rgba(0,0,0,0.08); }
+      .section-title { color: #0d6efd; margin-top: 2rem; }
+      .alert-full { background: #ffcccc; color: #b30000; font-weight: bold; }
+  body
+    .dashboard-container
+      h1.mb-4.text-center.text-primary Dashboard de Administrador
+      .d-flex.justify-content-center.gap-4.mb-4
+        a.btn.btn-outline-primary(href="/admin/alumnos") Alumnos
+        a.btn.btn-outline-success(href="/admin/laboratorios") Laboratorios
+      // Aquí puedes agregar más secciones o widgets según lo que necesites para el admin
+      // Por ejemplo, un resumen rápido o alertas
+      .row.g-4.mt-1
+        .col-md-12
+          .alert.alert-info.text-center Elige una sección para gestionar alumnos o laboratorios.
+    script(src="/bootstrap/js/bootstrap.bundle.min.js")

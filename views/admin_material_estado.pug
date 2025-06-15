@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Cambiar estado de material
+    form(method="POST" action=`/admin/laboratorios/${laboratorio.id}/materiales/${material.id}/estado` class="mt-4")
+      .mb-3
+        label.form-label(for="estado") Estado
+        select.form-select(name="estado" id="estado" required)
+          option(value="buen estado" selected=material.estado==='buen estado') Buen estado
+          option(value="observaciones" selected=material.estado==='observaciones') Observaciones
+          option(value="defecto" selected=material.estado==='defecto') Con defecto
+          option(value="mantenimiento" selected=material.estado==='mantenimiento') Mantenimiento
+      button.btn.btn-primary(type="submit") Guardar
+      a.btn.btn-secondary.ms-2(href=`/admin/laboratorios/${laboratorio.id}/inventario`) Cancelar

@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Agregar Material a #{laboratorio.nombre}
+    form(method="POST" action=`/admin/laboratorios/${laboratorio.id}/materiales/nuevo` enctype="multipart/form-data" class="mt-4")
+      .mb-3
+        label.form-label(for="nombre") Nombre del material
+        input.form-control(type="text" name="nombre" id="nombre" required)
+      .mb-3
+        label.form-label(for="imagen") Imagen
+        input.form-control(type="file" name="imagen" id="imagen" accept="image/*")
+      .mb-3
+        label.form-label(for="cantidad") Cantidad
+        input.form-control(type="number" name="cantidad" id="cantidad" min="1" required)
+      .mb-3
+        label.form-label(for="descripcion") Descripción
+        textarea.form-control(name="descripcion" id="descripcion" required)
+      .mb-3
+        label.form-label(for="estado") Estado
+        select.form-select(name="estado" id="estado" required)
+          option(value="buen estado") Buen estado
+          option(value="observaciones") Observaciones
+          option(value="defecto") Con defecto
+          option(value="mantenimiento") Mantenimiento
+      button.btn.btn-success(type="submit") Agregar material
+      a.btn.btn-secondary.ms-2(href=`/admin/laboratorios/${laboratorio.id}/inventario`) Cancelar

@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Editar Material
+    form(method="POST" action=`/admin/laboratorios/${laboratorio.id}/materiales/${material.id}/editar` enctype="multipart/form-data" class="mt-4")
+      .mb-3
+        label.form-label(for="nombre") Nombre del material
+        input.form-control(type="text" name="nombre" id="nombre" required value=material.nombre)
+      .mb-3
+        label.form-label(for="imagen") Imagen actual
+        if material.imagen
+          img(src=`/materiales/${material.imagen}` alt=material.nombre style="max-width:150px;")
+        else
+          span.text-muted Sin imagen
+        label.form-label.mt-2(for="imagen") Cambiar imagen (opcional)
+        input.form-control(type="file" name="imagen" id="imagen" accept="image/*")
+      .mb-3
+        label.form-label(for="cantidad") Cantidad
+        input.form-control(type="number" name="cantidad" id="cantidad" min="1" required value=material.cantidad)
+      .mb-3
+        label.form-label(for="descripcion") Descripción
+        textarea.form-control(name="descripcion" id="descripcion" required)= material.descripcion
+      button.btn.btn-primary(type="submit") Guardar cambios
+      a.btn.btn-secondary.ms-2(href=`/admin/laboratorios/${laboratorio.id}/inventario`) Cancelar

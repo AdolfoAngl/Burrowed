@@ -1,0 +1,20 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Burrowed - Login
+  body
+    block content
+      if error
+        p(style="color: red;") #{error}
+      form(action="/login" method="POST")
+        label(for="email") Correo institucional
+        input#email(type="email" name="email" required placeholder="usuario@alumno.ipn.mx")
+        br
+        label(for="password") Contraseña
+        input#password(type="password" name="password" required placeholder="Contraseña")
+        br
+        button(type="submit") Iniciar sesión
+      br
+      a(href="/registro" class="btn btn-link mt-2") Crear cuenta

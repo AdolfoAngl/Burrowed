@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Selecciona el laboratorio
+    if laboratorios && laboratorios.length
+      .row.mt-4
+        each lab in laboratorios
+          .col-md-4.mb-4
+            .card.shadow-sm
+              .card-body
+                h5.card-title #{lab.nombre}
+                p.card-text Ubicación: #{lab.ubicacion}
+                a.btn.btn-primary(href=`/solicitar-prestamo/${lab.id}/materiales`) Seleccionar
+    else
+      .alert.alert-info.mt-4 No hay laboratorios disponibles.

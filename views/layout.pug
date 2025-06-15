@@ -1,0 +1,12 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title= title || 'LabApp'
+    link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
+    style.
+      body { background: #f8f9fa; font-family: 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'; }
+      .container { max-width: 600px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 1.5rem; box-shadow: 0 0 24px rgba(0,0,0,0.08); }
+  body
+    block content

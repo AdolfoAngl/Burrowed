@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Perfil de Estudiante
+    .card.shadow-sm.mt-4
+      .card-body
+        h4.mb-3 #{nombre} #{apellido_paterno} #{apellido_materno}
+        p.mb-1
+          strong Correo institucional:
+          |  #{correo}
+        p.mb-1
+          strong Carrera:
+          |  #{carrera}
+        p.mb-1
+          strong Credencial escolar:
+        if credencial
+          img(src="/credenciales/#{credencial}" alt="Credencial" class="img-fluid rounded" style="max-width:300px;")
+        else
+          span.text-muted No se ha subido credencial.
+        br
+        a.btn.btn-primary.mt-3(href="/perfil/editar") Editar información

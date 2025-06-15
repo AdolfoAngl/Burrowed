@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Inventario de #{laboratorio.nombre}
+    a.btn.btn-success.mb-4(href=`/admin/laboratorios/${laboratorio.id}/materiales/nuevo`) Agregar material
+    if materiales && materiales.length
+      .row
+        each mat in materiales
+          .col-md-4.mb-4
+            .card.shadow
+              if mat.imagen
+                img.card-img-top(src=`/materiales/${mat.imagen}` alt=mat.nombre style="max-height:180px;object-fit:cover;")
+              .card-body
+                h5.card-title #{mat.nombre}
+                p Cantidad: #{mat.cantidad}
+                p Descripción: #{mat.descripcion}
+                p Estado: 
+                  span.badge.bg-secondary #{mat.estado}
+                .d-flex.gap-2.mt-2
+                  a.btn.btn-warning.btn-sm(href=`/admin/laboratorios/${laboratorio.id}/materiales/${mat.id}/editar`) Editar
+                  a.btn.btn-danger.btn-sm(href=`/admin/laboratorios/${laboratorio.id}/materiales/${mat.id}/eliminar`) Eliminar
+                  a.btn.btn-info.btn-sm(href=`/admin/laboratorios/${laboratorio.id}/materiales/${mat.id}/estado`) Cambiar estado
+    else
+      .alert.alert-info No hay materiales registrados en este laboratorio.

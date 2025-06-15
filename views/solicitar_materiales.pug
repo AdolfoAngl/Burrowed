@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Materiales disponibles en #{laboratorio.nombre}
+    form(method="POST" action=`/solicitar-prestamo/${laboratorio.id}/enviar`)
+      if materiales && materiales.length
+        .row.mt-4
+          each mat in materiales
+            .col-md-4.mb-4
+              .card.shadow-sm
+                if mat.imagen
+                  img.card-img-top(src=`/materiales/${mat.imagen}` alt=mat.nombre style="max-height:180px;object-fit:cover;")
+                .card-body
+                  h5.card-title #{mat.nombre}
+                  p Cantidad disponible: #{mat.cantidad}
+                  p Descripción: #{mat.descripcion}
+                  label.form-check-label
+                    input.form-check-input(type="checkbox" name="materiales[]" value=mat.id)
+                    |  Seleccionar
+      else
+        .alert.alert-info.mt-4 No hay materiales disponibles en este laboratorio.
+      button.btn.btn-primary.mt-4(type="submit") Solicitar préstamo
+      a.btn.btn-secondary.ms-2(href="/solicitar-prestamo") Cancelar

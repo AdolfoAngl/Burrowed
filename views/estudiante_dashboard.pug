@@ -1,0 +1,93 @@
+extends layout
+
+block content
+  // Menú hamburguesa
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light.mb-4
+    .container-fluid
+      a.navbar-brand(href="#")
+        img(src="/bootstrap/img/logo.png" alt="Logo" width="40" class="me-2")
+        | LabApp
+      button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
+        span.navbar-toggler-icon
+      #navbarNav.collapse.navbar-collapse
+        ul.navbar-nav.ms-auto
+          li.nav-item
+            a.nav-link(href="/perfil") Perfil
+          li.nav-item
+            a.nav-link(href="#") Historial de préstamos
+          li.nav-item
+            a.nav-link(href="/logout") Cerrar sesión
+
+  // Encabezado de bienvenida
+  .text-center.mb-4
+    h2 Bienvenido #{nombre}
+    img(src="/bootstrap/img/logo.png" alt="Logo" width="60")
+
+  // Préstamos en curso
+  .card.mb-4
+    .card-header.bg-primary.text-white Préstamos en curso
+    .card-body
+      if prestamos.length
+        each prestamo in prestamos
+          .mb-3.p-3.border.rounded.bg-light
+            h5.mb-1 #{prestamo.material}
+            p.mb-1 Laboratorio: #{prestamo.laboratorio}
+            p.mb-1 Profesor responsable: #{prestamo.profesor}
+            button.btn.btn-warning(data-id=prestamo.id data-material=prestamo.material) Realizar devolución
+      else
+        p.text-muted No tienes préstamos en curso.
+
+  // Modal para devolución (estructura, la lógica JS se agregará después)
+  #modalDevolucion.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Realizar devolución
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          form#formDevolucion(method="POST" action="/devolucion")
+            input(type="hidden" name="prestamoId" id="prestamoId")
+            input(type="hidden" name="material" id="material")
+            .mb-3
+              label.form-label Estado del material
+              select.form-select(name="estado" required)
+                option(value="") Selecciona una opción
+                option(value="buen estado") Buen estado
+                option(value="observaciones") Observaciones
+                option(value="defecto") Con defecto
+            .mb-3.d-none#observacionesDiv
+              label.form-label Observaciones/Defecto
+              textarea.form-control(name="observaciones" id="observaciones")
+            button.btn.btn-primary(type="submit") Enviar devolución
+
+  // Sección ¿Qué quieres hacer hoy?
+  .mt-5.text-center
+    h4 ¿Qué quieres hacer hoy?
+    .d-flex.justify-content-center.gap-3.mt-3
+      a.btn.btn-success(href="/solicitar-prestamo") Solicitar préstamo de equipo
+      a.btn.btn-info(href="#") Consultar disponibilidad
+
+  script(src="/bootstrap/js/bootstrap.bundle.min.js")
+  script.
+    // Mostrar campo de observaciones si corresponde
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('modalDevolucion');
+      if (modal) {
+        modal.addEventListener('show.bs.modal', function (event) {
+          var button = event.relatedTarget;
+          var prestamoId = button.getAttribute('data-id');
+          var material = button.getAttribute('data-material');
+          document.getElementById('prestamoId').value = prestamoId;
+          document.getElementById('material').value = material;
+        });
+        var estadoSelect = document.querySelector('select[name="estado"]');
+        var observacionesDiv = document.getElementById('observacionesDiv');
+        estadoSelect.addEventListener('change', function() {
+          if (this.value === 'observaciones' || this.value === 'defecto') {
+            observacionesDiv.classList.remove('d-none');
+          } else {
+            observacionesDiv.classList.add('d-none');
+          }
+        });
+      }
+    });

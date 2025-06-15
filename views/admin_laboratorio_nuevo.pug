@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Agregar Laboratorio
+    form(method="POST" action="/admin/laboratorios/nuevo" class="mt-4")
+      .mb-3
+        label.form-label(for="nombre") Nombre del laboratorio
+        input.form-control(type="text" name="nombre" id="nombre" required)
+      .mb-3
+        label.form-label(for="ubicacion") Ubicación
+        input.form-control(type="text" name="ubicacion" id="ubicacion" required)
+      button.btn.btn-success(type="submit") Agregar laboratorio
+      a.btn.btn-secondary.ms-2(href="/admin/laboratorios") Cancelar
