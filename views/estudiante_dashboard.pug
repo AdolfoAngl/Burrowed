@@ -33,7 +33,19 @@ block content
             h5.mb-1 #{prestamo.material}
             p.mb-1 Laboratorio: #{prestamo.laboratorio}
             p.mb-1 Profesor responsable: #{prestamo.profesor}
-            button.btn.btn-warning(data-id=prestamo.id data-material=prestamo.material) Realizar devolución
+            form(action=`/devolucion/${prestamo.id}` method="POST" class="devolucion-form")
+              label.mb-1 Selecciona el estado de devolución:
+              .form-check
+                input.form-check-input(type="radio" name="estado" id=`buen_estado_${prestamo.id}` value="En buen estado" required)
+                label.form-check-label(for=`buen_estado_${prestamo.id}`) En buen estado
+              .form-check
+                input.form-check-input(type="radio" name="estado" id=`observaciones_${prestamo.id}` value="Con observaciones")
+                label.form-check-label(for=`observaciones_${prestamo.id}`) Con observaciones
+              .form-check
+                input.form-check-input(type="radio" name="estado" id=`defecto_${prestamo.id}` value="Con defecto")
+                label.form-check-label(for=`defecto_${prestamo.id}`) Con defecto
+              textarea.form-control.mt-2(name="observaciones" placeholder="Agrega observaciones si aplica")
+              button.btn.btn-success.mt-2(type="submit") Confirmar devolución
       else
         p.text-muted No tienes préstamos en curso.
 

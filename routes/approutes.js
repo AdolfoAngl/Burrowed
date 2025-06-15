@@ -1,5 +1,6 @@
 // routes/approutes.js
 import express from 'express';
+import { Op } from 'sequelize';
 import { appController } from '../controllers/appController.js'; //Importamos el controlador
 import { mostrarRegistro, procesarRegistro } from '../controllers/registroController.js'; // Importamos el controlador de registro
 import multer from 'multer';
@@ -47,9 +48,24 @@ router.get('/admin/dashboard', (req, res) => {
     res.render('admin_dashboard');
 });
 
-// Vista de alumnos (simulada)
-router.get('/admin/alumnos', (req, res) => {
-  res.render('admin_alumnos', { alumnos: [] }); // Puedes pasar datos simulados si quieres
+// Vista de alumnos (dinámica)
+router.get('/admin/alumnos', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const alumnos = await Registro.findAll({ where: { correo: { [Op.like]: '%@alumno.ipn.mx' } } });
+  // Obtener préstamos activos para cada alumno
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  const prestamos = await Prestamo.findAll({ where: { estado: 'en curso' } });
+  // Contar préstamos activos por alumno
+  const prestamosPorAlumno = {};
+  prestamos.forEach(p => {
+    prestamosPorAlumno[p.alumnoCorreo] = (prestamosPorAlumno[p.alumnoCorreo] || 0) + 1;
+  });
+  // Agregar campo prestamosActivos a cada alumno
+  const alumnosConPrestamos = alumnos.map(a => ({
+    ...a.dataValues,
+    prestamosActivos: prestamosPorAlumno[a.correo] || 0
+  }));
+  res.render('admin_alumnos', { alumnos: alumnosConPrestamos });
 });
 
 // Vista de laboratorios (con datos reales)
@@ -58,11 +74,27 @@ router.get('/admin/laboratorios', async (req, res) => {
   res.render('admin_laboratorios', { laboratorios });
 });
 
-// Vista de inventario de laboratorio (con datos reales)
+// Vista de inventario de laboratorio (con datos reales y materiales en uso)
 router.get('/admin/laboratorios/:id/inventario', async (req, res) => {
   const laboratorio = await Laboratorio.findByPk(req.params.id);
   const materiales = await Material.findAll({ where: { laboratorioId: req.params.id } });
-  res.render('admin_inventario', { laboratorio, materiales });
+  // Obtener préstamos en curso para este laboratorio
+  const prestamos = await Prestamo.findAll({ where: { laboratorioId: req.params.id, estado: 'en curso' } });
+  // Calcular cuántos de cada material están en uso
+  const materialesEnUso = {};
+  prestamos.forEach(p => {
+    materialesEnUso[p.materialId] = (materialesEnUso[p.materialId] || 0) + 1;
+  });
+  // Agregar info de en uso y disponibles a cada material
+  const materialesConEstado = materiales.map(mat => {
+    const enUso = materialesEnUso[mat.id] || 0;
+    return {
+      ...mat.dataValues,
+      enUso,
+      disponibles: mat.cantidad - enUso
+    };
+  });
+  res.render('admin_inventario', { laboratorio, materiales: materialesConEstado });
 });
 
 // Vista para agregar material (con datos reales)
@@ -291,6 +323,44 @@ router.get('/ver-usuarios', async (req, res) => {
   const Registro = (await import('../models/Registro.js')).default;
   const usuarios = await Registro.findAll();
   res.json(usuarios);
+});
+
+// Vista de detalle de alumno
+router.get('/admin/alumnos/:id', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  // Buscar alumno
+  const alumno = await Registro.findByPk(req.params.id);
+  if (!alumno) return res.redirect('/admin/alumnos');
+  // Buscar préstamos del alumno
+  const prestamosDB = await Prestamo.findAll({ where: { alumnoCorreo: alumno.correo } });
+  // Mapear préstamos con detalles
+  const prestamos = await Promise.all(prestamosDB.map(async p => {
+    const material = await Material.findByPk(p.materialId);
+    return {
+      material: material ? material.nombre : 'Desconocido',
+      fechaPrestamo: p.createdAt ? p.createdAt.toLocaleString('es-MX') : '',
+      fechaDevolucion: p.updatedAt && p.estado !== 'en curso' ? p.updatedAt.toLocaleString('es-MX') : null,
+      estadoDevolucion: p.estado !== 'en curso' ? p.estado : null,
+      observaciones: p.observaciones || '',
+      reporte: p.reporte || null, // campo opcional para futuro
+      profesor: p.profesor || null // campo opcional para futuro
+    };
+  }));
+  res.render('admin_alumno_detalle', { alumno, prestamos });
+});
+
+// Ruta para procesar devolución de préstamo
+router.post('/devolucion/:id', async (req, res) => {
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  const prestamo = await Prestamo.findByPk(req.params.id);
+  if (!prestamo) return res.redirect('/dashboard-estudiante');
+  // Actualizar estado y observaciones
+  prestamo.estado = req.body.estado;
+  prestamo.observaciones = req.body.observaciones || '';
+  await prestamo.save();
+  res.redirect('/dashboard-estudiante');
 });
 
 export default router; //Este siempre dejalo, no lo borres

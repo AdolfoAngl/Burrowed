@@ -18,6 +18,10 @@ const Prestamo = db.define('Prestamo', {
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: 'en curso'
+  },
+  observaciones: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 });
 

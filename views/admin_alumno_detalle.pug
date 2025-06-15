@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Perfil de #{alumno.nombre}
+    .card.mb-4
+      .card-body
+        h4 Datos del alumno
+        p
+          b Correo: 
+          | #{alumno.correo}
+        p
+          b Carrera: 
+          | #{alumno.carrera}
+        p
+          b Credencial:
+          if alumno.credencial
+            a(href=`/credenciales/${alumno.credencial}` target="_blank") Ver credencial
+          else
+            | No disponible
+    h4.mt-4 Préstamos realizados
+    if prestamos && prestamos.length
+      table.table.table-bordered
+        thead
+          tr
+            th Material
+            th Fecha de préstamo
+            th Fecha de devolución
+            th Estado devolución
+            th Observaciones
+            th Reporte
+            th Profesor a cargo
+        tbody
+          each p in prestamos
+            tr
+              td #{p.material}
+              td #{p.fechaPrestamo}
+              td #{p.fechaDevolucion || 'Pendiente'}
+              td #{p.estadoDevolucion || 'Pendiente'}
+              td #{p.observaciones || 'Sin observaciones'}
+              td
+                if p.reporte
+                  a(href=`/reportes/${p.reporte}` target="_blank") Ver reporte
+                else
+                  | No disponible
+              td #{p.profesor || 'Pendiente'}
+    else
+      .alert.alert-info No hay préstamos registrados para este alumno.

@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Alumnos registrados
+    if alumnos && alumnos.length
+      table.table.table-striped
+        thead
+          tr
+            th Nombre
+            th Correo
+            th Carrera
+            th Préstamos activos
+            th Acciones
+        tbody
+          each alumno in alumnos
+            tr
+              td #{alumno.nombre}
+              td #{alumno.correo}
+              td #{alumno.carrera}
+              td #{alumno.prestamosActivos}
+              td
+                a.btn.btn-info.btn-sm(href=`/admin/alumnos/${alumno.id}`) Ver detalles
+    else
+      .alert.alert-info No hay alumnos registrados.

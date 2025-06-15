@@ -13,7 +13,9 @@ block content
                 img.card-img-top(src=`/materiales/${mat.imagen}` alt=mat.nombre style="max-height:180px;object-fit:cover;")
               .card-body
                 h5.card-title #{mat.nombre}
-                p Cantidad: #{mat.cantidad}
+                p Total: #{mat.cantidad}
+                p En uso: #{mat.enUso}
+                p Disponibles: #{mat.disponibles}
                 p Descripción: #{mat.descripcion}
                 p Estado: 
                   span.badge.bg-secondary #{mat.estado}
