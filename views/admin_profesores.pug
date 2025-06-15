@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Profesores registrados
+    if profesores && profesores.length
+      table.table.table-striped
+        thead
+          tr
+            th Nombre
+            th Correo
+            th Estado
+            th Acciones
+        tbody
+          each profesor in profesores
+            tr
+              td #{profesor.nombre}
+              td #{profesor.correo}
+              td
+                if profesor.estado === 'pendiente'
+                  span.badge.bg-warning.text-dark Pendiente
+                else if profesor.estado === 'activo'
+                  span.badge.bg-success Activo
+                else
+                  span.badge.bg-danger Rechazado
+              td
+                a.btn.btn-info.btn-sm(href=`/admin/profesores/${profesor.id}`) Ver perfil
+                if profesor.estado === 'pendiente'
+                  form(action=`/admin/profesores/${profesor.id}/aprobar` method="POST" style="display:inline;")
+                    button.btn.btn-success.btn-sm(type="submit") Aprobar
+                  form(action=`/admin/profesores/${profesor.id}/rechazar` method="POST" style="display:inline;")
+                    button.btn.btn-danger.btn-sm(type="submit") Rechazar
+    else
+      .alert.alert-info No hay profesores registrados.

@@ -30,6 +30,16 @@ const Registro = db.define('Registro', {
   credencial: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  rol: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'alumno' // alumno, profesor, admin
+  },
+  estado: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'pendiente' // pendiente, activo, rechazado
   }
 });
 

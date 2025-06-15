@@ -35,9 +35,20 @@ router.post('/login', async (req, res) => {
     // Buscar usuario alumno
     const Registro = (await import('../models/Registro.js')).default;
     const usuario = await Registro.findOne({ where: { correo: email } });
-    if(usuario && usuario.password === password && email.endsWith('@alumno.ipn.mx')) {
-        req.session.correo = usuario.correo; // Guardar en sesión
-        return res.redirect(`/dashboard-estudiante`);
+    if(usuario && usuario.password === password) {
+        if(usuario.rol === 'alumno' && usuario.estado === 'activo') {
+            req.session.correo = usuario.correo;
+            return res.redirect(`/dashboard-estudiante`);
+        } else if(usuario.rol === 'profesor') {
+            if(usuario.estado === 'pendiente') {
+                return res.render('login', { error: 'Tu cuenta de profesor está pendiente de aprobación por el administrador.' });
+            } else if(usuario.estado === 'rechazado') {
+                return res.render('login', { error: 'Tu cuenta de profesor fue rechazada.' });
+            } else if(usuario.estado === 'activo') {
+                req.session.correo = usuario.correo;
+                return res.redirect(`/dashboard-profesor`); // Aquí irá el dashboard de profesor
+            }
+        }
     }
     // Si no, recarga el login con error
     res.render('login', { error: 'Correo o contraseña incorrectos.' });
@@ -361,6 +372,43 @@ router.post('/devolucion/:id', async (req, res) => {
   prestamo.observaciones = req.body.observaciones || '';
   await prestamo.save();
   res.redirect('/dashboard-estudiante');
+});
+
+// Vista de profesores (listar y aprobar/rechazar)
+router.get('/admin/profesores', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesores = await Registro.findAll({ where: { rol: 'profesor' } });
+  res.render('admin_profesores', { profesores });
+});
+
+// Aprobar profesor
+router.post('/admin/profesores/:id/aprobar', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findByPk(req.params.id);
+  if (profesor && profesor.rol === 'profesor') {
+    profesor.estado = 'activo';
+    await profesor.save();
+  }
+  res.redirect('/admin/profesores');
+});
+
+// Rechazar profesor
+router.post('/admin/profesores/:id/rechazar', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findByPk(req.params.id);
+  if (profesor && profesor.rol === 'profesor') {
+    profesor.estado = 'rechazado';
+    await profesor.save();
+  }
+  res.redirect('/admin/profesores');
+});
+
+// Vista de detalle de profesor
+router.get('/admin/profesores/:id', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findByPk(req.params.id);
+  if (!profesor || profesor.rol !== 'profesor') return res.redirect('/admin/profesores');
+  res.render('admin_profesor_detalle', { profesor });
 });
 
 export default router; //Este siempre dejalo, no lo borres

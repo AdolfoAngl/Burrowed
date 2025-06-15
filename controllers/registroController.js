@@ -28,14 +28,16 @@ export const procesarRegistro = [
       const { nombre, apellido_paterno, apellido_materno, correo: correoOriginal, carrera, password } = req.body;
       const correo = correoOriginal.toLowerCase();
       const credencial = req.file ? req.file.filename : null;
-      await Registro.create({ nombre, apellido_paterno, apellido_materno, correo, carrera, password, credencial });
-      // Guardar correo en sesión
-      req.session.correo = correo;
-      // Redirigir según el tipo de correo
+      // Guardar correo en sesión solo si es alumno
       if (correo.endsWith('@alumno.ipn.mx')) {
+        await Registro.create({ nombre, apellido_paterno, apellido_materno, correo, carrera, password, credencial, rol: 'alumno', estado: 'activo' });
+        req.session.correo = correo;
         res.redirect(`/dashboard-estudiante`);
+      } else if (correo.endsWith('@ipn.mx')) {
+        await Registro.create({ nombre, apellido_paterno, apellido_materno, correo, carrera, password, credencial, rol: 'profesor', estado: 'pendiente' });
+        res.render('login', { error: 'Tu registro como profesor está pendiente de aprobación por el administrador.' });
       } else {
-        res.redirect('/login');
+        res.render('login', { error: 'Correo no válido para registro.' });
       }
     } catch (error) {
       console.log(error);
