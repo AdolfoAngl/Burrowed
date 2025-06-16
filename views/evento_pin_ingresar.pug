@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Ingresar PIN de evento
+    if error
+      .alert.alert-danger #{error}
+    form(method="POST" action="/evento-pin")
+      .mb-3
+        label.form-label(for="pin") Ingresa el PIN proporcionado por tu profesor
+        input.form-control(type="text" name="pin" id="pin" maxlength="6" required)
+      button.btn.btn-primary(type="submit") Ver materiales del evento

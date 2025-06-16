@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Evento creado exitosamente
+    p.mt-3
+      b PIN temporal para tus alumnos:
+      span.text-primary.fs-3 #{pin}
+    p El PIN expirará el: #{pinExpiracion.toLocaleString('es-MX')}
+    .alert.alert-info.mt-3
+      | Comparte este PIN con tus alumnos para que puedan solicitar los materiales de este evento.
+    a.btn.btn-secondary.mt-3(href="/dashboard-profesor") Volver al dashboard

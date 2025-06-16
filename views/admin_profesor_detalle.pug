@@ -29,5 +29,6 @@ block content
             a(href=`/credenciales/${profesor.credencial}` target="_blank") Ver credencial
           else
             | No disponible
-    h4.mt-4 Historial de eventos (próximamente)
+    h4.mt-4 Historial de eventos
+    a.btn.btn-outline-primary.mb-3(href=`/admin/profesores/${profesor.id}/eventos`) Ver historial de eventos
     .alert.alert-info Esta sección mostrará los eventos y solicitudes gestionados por el profesor.

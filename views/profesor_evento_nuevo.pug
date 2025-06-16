@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Crear nuevo evento
+    form(method="POST" action="/profesor/evento/nuevo")
+      .mb-3
+        label.form-label(for="nombre") Nombre del evento
+        input.form-control(type="text" name="nombre" id="nombre" required)
+      .mb-3
+        label.form-label(for="laboratorioId") Laboratorio
+        select.form-control(name="laboratorioId" id="laboratorioId" required)
+          each lab in laboratorios
+            option(value=lab.id) #{lab.nombre}
+      .mb-3
+        label.form-label(for="fecha") Fecha y hora
+        input.form-control(type="datetime-local" name="fecha" id="fecha" required)
+      .mb-3
+        label.form-label Materiales requeridos
+        each mat in materiales
+          .form-check
+            input.form-check-input(type="checkbox" name="materiales" id=`mat_${mat.id}` value=mat.id)
+            label.form-check-label(for=`mat_${mat.id}`) #{mat.nombre}
+      button.btn.btn-primary(type="submit") Crear evento

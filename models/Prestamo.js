@@ -22,6 +22,10 @@ const Prestamo = db.define('Prestamo', {
   observaciones: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  profesor: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 });
 

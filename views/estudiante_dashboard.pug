@@ -32,7 +32,7 @@ block content
           .mb-3.p-3.border.rounded.bg-light
             h5.mb-1 #{prestamo.material}
             p.mb-1 Laboratorio: #{prestamo.laboratorio}
-            p.mb-1 Profesor responsable: #{prestamo.profesor}
+            p.mb-1 Profesor responsable: #{prestamo.profesor || 'No asignado'}
             form(action=`/devolucion/${prestamo.id}` method="POST" class="devolucion-form")
               label.mb-1 Selecciona el estado de devolución:
               .form-check
@@ -48,6 +48,13 @@ block content
               button.btn.btn-success.mt-2(type="submit") Confirmar devolución
       else
         p.text-muted No tienes préstamos en curso.
+
+  // Acceso rápido a eventos por PIN
+  .card.mb-4
+    .card-header.bg-success.text-white Solicitar materiales por PIN de evento
+    .card-body
+      form(action="/evento-pin" method="GET")
+        button.btn.btn-success(type="submit") Ingresar PIN de evento
 
   // Modal para devolución (estructura, la lógica JS se agregará después)
   #modalDevolucion.modal.fade(tabindex="-1" aria-hidden="true")
@@ -71,6 +78,26 @@ block content
               label.form-label Observaciones/Defecto
               textarea.form-control(name="observaciones" id="observaciones")
             button.btn.btn-primary(type="submit") Enviar devolución
+
+  // Próximos eventos accedidos por PIN
+  if (proximosEventos && proximosEventos.length)
+    .card.mb-4
+      .card-header.bg-info.text-white Eventos accedidos por PIN
+      .card-body
+        table.table.table-striped
+          thead
+            tr
+              th Nombre del evento
+              th Laboratorio
+              th Fecha
+              th Materiales
+          tbody
+            each evento in proximosEventos
+              tr
+                td #{evento.nombre}
+                td #{evento.laboratorioNombre}
+                td #{evento.fecha}
+                td #{evento.materialesNombres}
 
   // Sección ¿Qué quieres hacer hoy?
   .mt-5.text-center

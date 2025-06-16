@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Historial de eventos del profesor
+    if eventos && eventos.length
+      table.table.table-striped
+        thead
+          tr
+            th Nombre del evento
+            th Laboratorio
+            th Fecha
+            th PIN
+            th Materiales
+        tbody
+          each evento in eventos
+            tr
+              td #{evento.nombre}
+              td #{evento.laboratorioNombre}
+              td #{evento.fecha}
+              td #{evento.pin}
+              td #{evento.materialesNombres}
+    else
+      .alert.alert-info No hay eventos registrados para este profesor.

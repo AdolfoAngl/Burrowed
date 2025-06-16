@@ -7,6 +7,7 @@ import multer from 'multer';
 import Laboratorio from '../models/Laboratorio.js';
 import Material from '../models/Material.js';
 import Prestamo from '../models/Prestamo.js';
+import Evento from '../models/Evento.js';
 
 // Controlador para login
 const loginController = (req, res) => {
@@ -326,7 +327,28 @@ router.get('/dashboard-estudiante', async (req, res) => {
       estado: p.estado
     });
   }
-  res.render('estudiante_dashboard', { nombre: usuario.nombre, correo, prestamos });
+  // Próximos eventos accedidos por PIN
+  if (req.session.eventosAccedidos && req.session.eventosAccedidos.length) {
+    const Evento = (await import('../models/Evento.js')).default;
+    const Material = (await import('../models/Material.js')).default;
+    const Laboratorio = (await import('../models/Laboratorio.js')).default;
+    const eventos = await Evento.findAll({ where: { id: req.session.eventosAccedidos } });
+    const eventosConNombres = await Promise.all(eventos.map(async e => {
+      const lab = await Laboratorio.findByPk(e.laboratorioId);
+      const materialesIds = e.materiales.split(',').map(id => parseInt(id));
+      const mats = await Material.findAll({ where: { id: materialesIds } });
+      return {
+        ...e.dataValues,
+        laboratorioNombre: lab ? lab.nombre : 'Desconocido',
+        fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
+        materialesNombres: mats.map(m => m.nombre).join(', ')
+      };
+    }));
+    res.locals.proximosEventos = eventosConNombres;
+  } else {
+    res.locals.proximosEventos = [];
+  }
+  res.render('estudiante_dashboard', { nombre: usuario.nombre, correo, prestamos, proximosEventos: res.locals.proximosEventos });
 });
 
 // Ruta temporal para ver todos los usuarios registrados
@@ -409,6 +431,137 @@ router.get('/admin/profesores/:id', async (req, res) => {
   const profesor = await Registro.findByPk(req.params.id);
   if (!profesor || profesor.rol !== 'profesor') return res.redirect('/admin/profesores');
   res.render('admin_profesor_detalle', { profesor });
+});
+
+// Dashboard profesor (con eventos creados)
+router.get('/dashboard-profesor', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const Evento = (await import('../models/Evento.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const profesor = await Registro.findOne({ where: { correo } });
+  if (!profesor || profesor.rol !== 'profesor') return res.redirect('/login');
+  // Obtener eventos creados por el profesor
+  const eventos = await Evento.findAll({ where: { profesorCorreo: correo } });
+  // Mapear nombres de laboratorio y materiales
+  const eventosConNombres = await Promise.all(eventos.map(async e => {
+    const lab = await Laboratorio.findByPk(e.laboratorioId);
+    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
+    const mats = await Material.findAll({ where: { id: materialesIds } });
+    return {
+      ...e.dataValues,
+      laboratorioNombre: lab ? lab.nombre : 'Desconocido',
+      fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
+      materialesNombres: mats.map(m => m.nombre).join(', ')
+    };
+  }));
+  res.render('profesor_dashboard', { profesor, eventos: eventosConNombres });
+});
+
+// Vista para crear nuevo evento (profesor)
+router.get('/profesor/evento/nuevo', async (req, res) => {
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const laboratorios = await Laboratorio.findAll();
+  const materiales = await Material.findAll();
+  res.render('profesor_evento_nuevo', { laboratorios, materiales });
+});
+
+// Procesar creación de evento
+router.post('/profesor/evento/nuevo', async (req, res) => {
+  const { nombre, laboratorioId, fecha, materiales } = req.body;
+  const profesorCorreo = req.session.correo;
+  if (!profesorCorreo) return res.redirect('/login');
+  // Generar PIN de 6 dígitos
+  const pin = Math.floor(100000 + Math.random() * 900000).toString();
+  // Expira en 1 hora
+  const pinExpiracion = new Date(Date.now() + 60 * 60 * 1000);
+  // Materiales puede ser array o string
+  const materialesStr = Array.isArray(materiales) ? materiales.join(',') : materiales;
+  await Evento.create({
+    nombre,
+    laboratorioId,
+    profesorCorreo,
+    fecha,
+    materiales: materialesStr,
+    pin,
+    pinExpiracion
+  });
+  res.render('profesor_evento_pin', { pin, pinExpiracion });
+});
+
+// Vista para que el alumno ingrese un PIN de evento
+router.get('/evento-pin', (req, res) => {
+  res.render('evento_pin_ingresar');
+});
+
+// Procesar PIN ingresado por alumno
+router.post('/evento-pin', async (req, res) => {
+  const { pin } = req.body;
+  const Evento = (await import('../models/Evento.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const evento = await Evento.findOne({ where: { pin } });
+  if (!evento || new Date() > evento.pinExpiracion) {
+    return res.render('evento_pin_ingresar', { error: 'PIN inválido o expirado.' });
+  }
+  // Guardar el evento accedido en la sesión del alumno
+  if (!req.session.eventosAccedidos) req.session.eventosAccedidos = [];
+  if (!req.session.eventosAccedidos.includes(evento.id)) req.session.eventosAccedidos.push(evento.id);
+  // Obtener materiales del evento
+  const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
+  const materiales = await Material.findAll({ where: { id: materialesIds } });
+  res.render('evento_pin_materiales', { evento, materiales });
+});
+
+// Procesar solicitud de materiales por PIN (alumno)
+router.post('/evento-pin/solicitar/:eventoId', async (req, res) => {
+  const Evento = (await import('../models/Evento.js')).default;
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  const evento = await Evento.findByPk(req.params.eventoId);
+  if (!evento) return res.redirect('/evento-pin');
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  // Guardar el evento accedido en la sesión del alumno
+  if (!req.session.eventosAccedidos) req.session.eventosAccedidos = [];
+  if (!req.session.eventosAccedidos.includes(evento.id)) req.session.eventosAccedidos.push(evento.id);
+  // Materiales del evento
+  const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
+  for (const matId of materialesIds) {
+    await Prestamo.create({
+      alumnoCorreo: correo,
+      laboratorioId: evento.laboratorioId,
+      materialId: matId,
+      estado: 'en curso',
+      profesor: evento.profesorCorreo // campo opcional para integración
+    });
+  }
+  res.redirect('/dashboard-estudiante');
+});
+
+// Historial de eventos de un profesor (admin)
+router.get('/admin/profesores/:id/eventos', async (req, res) => {
+  const Registro = (await import('../models/Registro.js')).default;
+  const Evento = (await import('../models/Evento.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const profesor = await Registro.findByPk(req.params.id);
+  if (!profesor || profesor.rol !== 'profesor') return res.redirect('/admin/profesores');
+  const eventos = await Evento.findAll({ where: { profesorCorreo: profesor.correo } });
+  // Mapear nombres de laboratorio y materiales
+  const eventosConNombres = await Promise.all(eventos.map(async e => {
+    const lab = await Laboratorio.findByPk(e.laboratorioId);
+    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
+    const mats = await Material.findAll({ where: { id: materialesIds } });
+    return {
+      ...e.dataValues,
+      laboratorioNombre: lab ? lab.nombre : 'Desconocido',
+      fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
+      materialesNombres: mats.map(m => m.nombre).join(', ')
+    };
+  }));
+  res.render('admin_profesor_eventos', { eventos: eventosConNombres });
 });
 
 export default router; //Este siempre dejalo, no lo borres
