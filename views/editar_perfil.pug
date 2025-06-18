@@ -1,33 +1,27 @@
 extends layout
 
 block content
-  .container-xl.mt-5
-    .row.justify-content-center
-      .col-12.col-lg-8
-        .card.shadow-sm
-          .card-header.bg-primary.text-white.text-center.fw-bold Editar información de perfil
-          .card-body
-            form(method="POST" action="/perfil/editar" enctype="multipart/form-data")
-              .row
-                .col-md-6.mb-3
-                  label.form-label(for="nombre") Nombre
-                  input.form-control(type="text" name="nombre" id="nombre" required value=nombre)
-                .col-md-6.mb-3
-                  label.form-label(for="apellido_paterno") Apellido paterno
-                  input.form-control(type="text" name="apellido_paterno" id="apellido_paterno" required value=apellido_paterno)
-                .col-md-6.mb-3
-                  label.form-label(for="apellido_materno") Apellido materno
-                  input.form-control(type="text" name="apellido_materno" id="apellido_materno" required value=apellido_materno)
-                .col-md-6.mb-3
-                  label.form-label(for="carrera") Carrera
-                  select.form-control(name="carrera" id="carrera" required)
-                    option(value="" disabled selected)= carrera ? carrera : 'Selecciona tu carrera'
-                    option(value="ISC" selected=carrera==='ISC') ISC
-                    option(value="IIA" selected=carrera==='IIA') IIA
-                    option(value="LSD" selected=carrera==='LSD') LSD
-                .col-12.mb-3
-                  label.form-label(for="credencial") Cambiar credencial escolar (opcional)
-                  input.form-control(type="file" name="credencial" id="credencial" accept="image/*,application/pdf")
-              .d-flex.justify-content-center.mt-4
-                button.btn.btn-success.px-4(type="submit") Guardar cambios
-                a.btn.btn-secondary.ms-3.px-4(href="/perfil") Cancelar
+  .container.mt-5
+    h2.text-center Editar información
+    form(method="POST" action="/perfil/editar" enctype="multipart/form-data" class="mt-4")
+      .mb-3
+        label.form-label(for="nombre") Nombre
+        input.form-control(type="text" name="nombre" id="nombre" required value=nombre)
+      .mb-3
+        label.form-label(for="apellido_paterno") Apellido paterno
+        input.form-control(type="text" name="apellido_paterno" id="apellido_paterno" required value=apellido_paterno)
+      .mb-3
+        label.form-label(for="apellido_materno") Apellido materno
+        input.form-control(type="text" name="apellido_materno" id="apellido_materno" required value=apellido_materno)
+      .mb-3
+        label.form-label(for="carrera") Carrera
+        select.form-control(name="carrera" id="carrera" required)
+          option(value="" disabled selected)= carrera ? carrera : 'Selecciona tu carrera'
+          option(value="ISC" selected=carrera==='ISC') ISC
+          option(value="IIA" selected=carrera==='IIA') IIA
+          option(value="LSD" selected=carrera==='LSD') LSD
+      .mb-3
+        label.form-label(for="credencial") Cambiar credencial escolar (opcional)
+        input.form-control(type="file" name="credencial" id="credencial" accept="image/*,application/pdf")
+      button.btn.btn-success(type="submit") Guardar cambios
+      a.btn.btn-secondary.ms-2(href="/perfil") Cancelar

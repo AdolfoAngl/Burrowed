@@ -8,7 +8,6 @@ import Laboratorio from '../models/Laboratorio.js';
 import Material from '../models/Material.js';
 import Prestamo from '../models/Prestamo.js';
 import Evento from '../models/Evento.js';
-import materialesApiRouter from './materiales_api.js';
 
 // Controlador para login
 const loginController = (req, res) => {
@@ -17,6 +16,20 @@ const loginController = (req, res) => {
 
 //Creamos el router 
 const router = express.Router();
+
+//Middleware para proteger rutas de admin
+function requireAdmin(req, res, next) {
+    if (req.session.correo === 'admin@burrowed.mx') {
+        return next();
+    }
+    return res.redirect('/login');
+}
+
+// Middleware para pasar correo a todas las vistas
+router.use((req, res, next) => {
+    res.locals.correo = req.session.correo;
+    next();
+});
 
 //Pagina de inicio
 router.get('/', appController); //RUTA, middleware, controller
@@ -30,9 +43,13 @@ router.post('/login', async (req, res) => {
     const email = req.body.email.trim().toLowerCase();
     const password = req.body.password;
     // Admin
-    if(email === 'admin@escom.ipn.mx' && password === 'admin123') {
+    if(email === 'admin@burrowed.mx' && password === 'admin') {
         req.session.correo = email; // Guardar en sesión
         return res.redirect('/admin/dashboard');
+    }
+    // Solo permitir login a correos de alumno o profesor
+    if(!email.endsWith('@alumno.ipn.mx') && !email.endsWith('@ipn.mx')) {
+        return res.render('login', { error: 'Correo o contraseña incorrectos.' });
     }
     // Buscar usuario alumno
     const Registro = (await import('../models/Registro.js')).default;
@@ -57,8 +74,21 @@ router.post('/login', async (req, res) => {
 });
 
 // Dashboard admin
-router.get('/admin/dashboard', (req, res) => {
-    res.render('admin_dashboard');
+router.get('/admin/dashboard', requireAdmin, async (req, res) => {
+    const Registro = (await import('../models/Registro.js')).default;
+    const Laboratorio = (await import('../models/Laboratorio.js')).default;
+    const Prestamo = (await import('../models/Prestamo.js')).default;
+    const Reservacion = (await import('../models/Reservacion.js')).default;
+    const totalAlumnos = await Registro.count({ where: { correo: { [Op.like]: '%@alumno.ipn.mx' } } });
+    const totalProfesores = await Registro.count({ where: { correo: { [Op.like]: '%@ipn.mx' }, rol: 'profesor' } });
+    const totalLaboratorios = await Laboratorio.count();
+    const totalReservaciones = await Reservacion.count();
+    res.render('admin_dashboard', {
+        totalAlumnos,
+        totalProfesores,
+        totalLaboratorios,
+        totalReservaciones
+    });
 });
 
 // Vista de alumnos (dinámica)
@@ -154,25 +184,14 @@ router.get('/perfil', async (req, res) => {
   const Registro = (await import('../models/Registro.js')).default;
   const usuario = await Registro.findOne({ where: { correo } });
   if (!usuario) return res.redirect('/login');
-  if (usuario.rol === 'profesor') {
-    res.render('perfil_profesor', {
-      nombre: usuario.nombre,
-      apellido_paterno: usuario.apellido_paterno,
-      apellido_materno: usuario.apellido_materno,
-      correo: usuario.correo,
-      carrera: usuario.carrera,
-      credencial: usuario.credencial
-    });
-  } else {
-    res.render('perfil_estudiante', {
-      nombre: usuario.nombre,
-      apellido_paterno: usuario.apellido_paterno,
-      apellido_materno: usuario.apellido_materno,
-      correo: usuario.correo,
-      carrera: usuario.carrera,
-      credencial: usuario.credencial
-    });
-  }
+  res.render('perfil_estudiante', {
+    nombre: usuario.nombre,
+    apellido_paterno: usuario.apellido_paterno,
+    apellido_materno: usuario.apellido_materno,
+    correo: usuario.correo,
+    carrera: usuario.carrera,
+    credencial: usuario.credencial
+  });
 });
 
 // Página para editar perfil de estudiante
@@ -363,13 +382,14 @@ router.get('/dashboard-estudiante', async (req, res) => {
       ) {
         puedeSolicitar = true;
       }
-      // Verificar si el alumno ya tiene préstamo para este evento (cualquier estado)
+      // Verificar si el alumno ya tiene préstamo para este evento
       const Prestamo = (await import('../models/Prestamo.js')).default;
       const prestamoExistente = await Prestamo.findOne({
         where: {
           alumnoCorreo: correo,
           laboratorioId: e.laboratorioId,
-          profesor: e.profesorCorreo
+          profesor: e.profesorCorreo,
+          estado: 'en curso'
         }
       });
       if (prestamoExistente) yaSolicitado = true;
@@ -545,39 +565,7 @@ router.get('/dashboard-profesor', async (req, res) => {
       estado: r.estado
     };
   }));
-  // Historial de eventos pasados
-  const eventosPasados = await Evento.findAll({ where: { profesorCorreo: correo, fecha: { [Op.lt]: new Date() } } });
-  const eventosPasadosConNombres = await Promise.all(eventosPasados.map(async e => {
-    const lab = await Laboratorio.findByPk(e.laboratorioId);
-    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
-    const mats = await Material.findAll({ where: { id: materialesIds } });
-    return {
-      ...e.dataValues,
-      laboratorioNombre: lab ? lab.nombre : 'Desconocido',
-      fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
-      materialesNombres: mats.map(m => m.nombre).join(', ')
-    };
-  }));
-
-  // Historial de préstamos gestionados por el profesor
-  const Prestamo = (await import('../models/Prestamo.js')).default;
-  const prestamosGestionados = await Prestamo.findAll({ where: { profesor: correo } });
-  const prestamosGestionadosDetalle = await Promise.all(prestamosGestionados.map(async p => {
-    const material = await Material.findByPk(p.materialId);
-    const laboratorio = await Laboratorio.findByPk(p.laboratorioId);
-    return {
-      material: material ? material.nombre : 'Desconocido',
-      materialImagen: material ? material.imagen : '',
-      laboratorio: laboratorio ? laboratorio.nombre : 'Desconocido',
-      alumnoCorreo: p.alumnoCorreo,
-      fechaPrestamo: p.createdAt ? p.createdAt.toLocaleString('es-MX') : '',
-      fechaDevolucion: p.updatedAt && p.estado !== 'en curso' ? p.updatedAt.toLocaleString('es-MX') : null,
-      estadoDevolucion: p.estado !== 'en curso' ? p.estado : null,
-      observaciones: p.observaciones || ''
-    };
-  }));
-
-  res.render('profesor_dashboard', { profesor, eventos: eventosConNombres, reservaciones: reservacionesDetalle, dashboardUrl: '/dashboard-profesor', eventosPasados: eventosPasadosConNombres, prestamosGestionados: prestamosGestionadosDetalle });
+  res.render('profesor_dashboard', { profesor, eventos: eventosConNombres, reservaciones: reservacionesDetalle });
 });
 
 // Vista para crear nuevo evento (profesor)
@@ -586,7 +574,7 @@ router.get('/profesor/evento/nuevo', async (req, res) => {
   const Material = (await import('../models/Material.js')).default;
   const laboratorios = await Laboratorio.findAll();
   const materiales = await Material.findAll();
-  res.render('profesor_evento_nuevo', { laboratorios, materiales, dashboardUrl: '/dashboard-profesor' });
+  res.render('profesor_evento_nuevo', { laboratorios, materiales });
 });
 
 // Procesar creación de evento
@@ -611,7 +599,7 @@ router.post('/profesor/evento/nuevo', async (req, res) => {
     pin,
     pinExpiracion
   });
-  res.render('profesor_evento_pin', { pin, pinExpiracion, dashboardUrl: '/dashboard-profesor' });
+  res.render('profesor_evento_pin', { pin, pinExpiracion });
 });
 
 // Vista para que el alumno ingrese un PIN de evento
@@ -909,31 +897,6 @@ router.get('/historial-alumno', async (req, res) => {
     };
   }));
   res.render('historial_alumno', { prestamos });
-});
-
-// API de materiales por laboratorio
-router.use('/api', materialesApiRouter);
-
-// Historial de eventos pasados (profesor)
-router.get('/historial-eventos-profesor', async (req, res) => {
-  const correo = req.session.correo;
-  if (!correo) return res.redirect('/login');
-  const Evento = (await import('../models/Evento.js')).default;
-  const Material = (await import('../models/Material.js')).default;
-  const Laboratorio = (await import('../models/Laboratorio.js')).default;
-  const eventosPasados = await Evento.findAll({ where: { profesorCorreo: correo, fecha: { [Op.lt]: new Date() } } });
-  const eventosPasadosConNombres = await Promise.all(eventosPasados.map(async e => {
-    const lab = await Laboratorio.findByPk(e.laboratorioId);
-    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
-    const mats = await Material.findAll({ where: { id: materialesIds } });
-    return {
-      ...e.dataValues,
-      laboratorioNombre: lab ? lab.nombre : 'Desconocido',
-      fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
-      materialesNombres: mats.map(m => m.nombre).join(', ')
-    };
-  }));
-  res.render('historial_eventos_profesor', { eventosPasados: eventosPasadosConNombres, dashboardUrl: '/dashboard-profesor' });
 });
 
 export default router; //Este siempre dejalo, no lo borres
