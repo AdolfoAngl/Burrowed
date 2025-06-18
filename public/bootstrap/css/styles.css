@@ -1,8 +1,8 @@
 body {
-  background: #ffffff;
+  background: #fff;
   min-height: 100vh;
 }
-.login-container {
+.login-container, .register-container {
   background: #fff;
   border-radius: 1.5rem;
   box-shadow: 0 4px 32px rgba(10,66,117,0.13);
@@ -120,4 +120,63 @@ body {
   text-align: center;
   display: block;
   margin-top: 1rem;
+}
+
+/*Registro ususario*/
+
+.register-container {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(10,66,117,0.13);
+  max-width: 500px;
+  margin: 4rem auto 0 auto;
+  padding: 2.5rem 2rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.register-form label {
+  color: #0A4275;
+  font-weight: 500;
+}
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="password"],
+.register-form input[type="file"] {
+  border: none;
+  border-bottom: 2px solid #397BBE;
+  border-radius: 0;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem 0.5rem 1rem;
+  background: transparent;
+  box-shadow: none;
+  transition: border-color 0.2s;
+}
+.register-form input:focus {
+  outline: none;
+  border-bottom: 2.5px solid #0A4275;
+  background: #eaf3fa;
+}
+.register-form button {
+  background: #397BBE;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(10,66,117,0.08);
+}
+.register-form .btn-link {
+  color: #3C9DDC;
+  text-align: center;
+  display: block;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .register-container {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+  }
 }
