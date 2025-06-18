@@ -1,0 +1,123 @@
+body {
+  background: #ffffff;
+  min-height: 100vh;
+}
+.login-container {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(10,66,117,0.13);
+  overflow: hidden;
+  max-width: 1200px;
+  margin: 4rem auto;
+  display: flex;
+  flex-direction: row;
+  min-height: 600px;
+}
+@media (max-width: 1200px) {
+  .login-container {
+    max-width: 98vw;
+  }
+}
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    max-width: 98vw;
+    min-height: unset;
+    margin: 1.5rem auto;
+  }
+  .login-carousel, .login-form-section {
+    width: 100% !important;
+  }
+}
+.login-carousel {
+  background: #0865a2;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.login-carousel .carousel-caption {
+  background: rgba(0,0,0,0.65);
+  border-radius: 1rem;
+  padding: 1.2rem 1.5rem;
+  color: #fff;
+  left: 2rem;
+  right: 2rem;
+  bottom: 2.5rem;
+}
+.login-carousel .carousel-caption h5,
+.login-carousel .carousel-caption p {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.login-form-section {
+  width: 50%;
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.brand-logos {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.brand-logos img {
+  height: 120px;
+  max-width: 220px;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+.burrowed-title {
+  color: #397BBE;
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.burrowed-slogan {
+  color: #3C9DDC;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.login-form label {
+  color: #0A4275;
+  font-weight: 500;
+}
+.login-form input {
+  border: none;
+  border-bottom: 2px solid #397BBE;
+  border-radius: 0;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem 0.5rem 1rem;
+  background: transparent;
+  box-shadow: none;
+  transition: border-color 0.2s;
+}
+.login-form input:focus {
+  outline: none;
+  border-bottom: 2.5px solid #0A4275;
+  background: #eaf3fa;
+}
+.login-form button {
+  background: #397BBE;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(10,66,117,0.08);
+}
+.login-form .btn-link {
+  color: #3C9DDC;
+  text-align: center;
+  display: block;
+  margin-top: 1rem;
+}
