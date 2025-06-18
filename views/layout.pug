@@ -12,7 +12,7 @@ html(lang="es")
   body
     nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm.mb-4
       .container-fluid
-        a.navbar-brand(href="/dashboard-estudiante")
+        a.navbar-brand(href=dashboardUrl || '/dashboard-estudiante')
           img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
           span.fw-bold.text-white Burrowed
         button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
@@ -24,9 +24,9 @@ html(lang="es")
                 i.bi.bi-person-circle.me-1
                 | Perfil
             li.nav-item
-              a.nav-link.text-white(href="/historial-alumno")
+              a.nav-link.text-white(href="/historial-eventos-profesor")
                 i.bi.bi-clock-history.me-1
-                | Historial de préstamos
+                | Historial de eventos
             li.nav-item
               a.nav-link.text-white(href="/logout")
                 i.bi.bi-box-arrow-right.me-1

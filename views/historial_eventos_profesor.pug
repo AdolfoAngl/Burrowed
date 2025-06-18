@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .container-xl.mt-5
+    .row.justify-content-center
+      .col-12.col-lg-10
+        h2.text-center.mb-4.text-primary.fw-bold Historial de eventos
+        .card.shadow-sm
+          .card-body
+            if eventosPasados && eventosPasados.length
+              .table-responsive
+                table.table.table-hover.table-striped.align-middle.shadow-sm.rounded
+                  thead.table-secondary
+                    tr
+                      th.text-center Nombre del evento
+                      th.text-center Laboratorio
+                      th.text-center Fecha
+                      th.text-center PIN
+                      th.text-center Materiales
+                  tbody
+                    each evento in eventosPasados
+                      tr
+                        td.text-center.fw-semibold #{evento.nombre}
+                        td.text-center #{evento.laboratorioNombre}
+                        td.text-center #{evento.fecha}
+                        td.text-center #{evento.pin}
+                        td.text-center #{evento.materialesNombres}
+            else
+              .alert.alert-info.mt-3 No hay eventos pasados registrados.
+    .d-flex.justify-content-center
+      a.btn.btn-outline-primary.mt-4.px-4.fw-semibold(href="/dashboard-profesor")
+        i.bi.bi-arrow-left.me-2
+        | Volver al dashboard

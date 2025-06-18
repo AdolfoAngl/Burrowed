@@ -1,75 +1,102 @@
 extends layout
 
 block content
-  .container.mt-5
-    h2.text-center Dashboard de Profesor
-    .card.mb-4
-      .card-body
-        h4 Bienvenido, #{profesor.nombre}
-        p
-          b Correo: 
-          | #{profesor.correo}
-        p
-          b Carrera: 
-          | #{profesor.carrera}
-        p
-          b Estado: 
-          if profesor.estado === 'activo'
-            span.badge.bg-success Activo
-          else if profesor.estado === 'pendiente'
-            span.badge.bg-warning.text-dark Pendiente
-          else
-            span.badge.bg-danger Rechazado
-    h4.mt-4 Mis eventos
-    if eventos && eventos.length
-      table.table.table-striped
-        thead
-          tr
-            th Nombre del evento
-            th Laboratorio
-            th Fecha
-            th PIN
-            th Materiales
-        tbody
-          each evento in eventos
-            tr
-              td #{evento.nombre}
-              td #{evento.laboratorioNombre}
-              td #{evento.fecha}
-              td #{evento.pin}
-              td #{evento.materialesNombres}
-    else
-      .alert.alert-info No hay eventos registrados.
-    a.btn.btn-primary.mt-3(href="/profesor/evento/nuevo") Crear nuevo evento
-    h4.mt-4 Reservaciones de laboratorio asignadas
-    if reservaciones && reservaciones.length
-      table.table.table-bordered
-        thead
-          tr
-            th Laboratorio
-            th Fecha
-            th Hora inicio
-            th Hora fin
-            th Alumnos
-            th Cupos ocupados
-            th Cupos totales
-            th Estado
-        tbody
-          each r in reservaciones
-            tr
-              td #{r.laboratorio}
-              td #{r.fecha}
-              td #{r.horaInicio}
-              td #{r.horaFin}
-              td
-                if r.alumnos.length
-                  ul.mb-0
-                    each a in r.alumnos
-                      li= a
+  .container-xl
+    .row.justify-content-center
+      .col-12.col-lg-10
+        .text-center.mb-4
+          h2.fw-bold.text-primary Bienvenido, #{profesor.nombre}
+        // Tarjeta de datos del profesor
+        .card.mb-4.shadow-sm
+          .card-header.bg-primary.text-white.fw-semibold Datos del profesor
+          .card-body
+            .row.mb-2
+              .col-md-6.mb-2
+                i.bi.bi-envelope.me-2.text-primary
+                b Correo:
+                span.ms-1 #{profesor.correo}
+              .col-md-6.mb-2
+                i.bi.bi-mortarboard.me-2.text-primary
+                b Carrera:
+                span.ms-1 #{profesor.carrera}
+            .row
+              .col-md-6.mb-2
+                i.bi.bi-person-badge.me-2.text-primary
+                b Estado:
+                if profesor.estado === 'activo'
+                  span.badge.bg-success.ms-1 Activo
+                else if profesor.estado === 'pendiente'
+                  span.badge.bg-warning.text-dark.ms-1 Pendiente
                 else
-                  | Sin reservas
-              td #{r.ocupados}
-              td #{r.cupos}
-              td #{r.estado}
-    else
-      .alert.alert-info No hay reservaciones asignadas.
+                  span.badge.bg-danger.ms-1 Rechazado
+
+        // Eventos creados
+        .card.mb-4.shadow-sm
+          .card-header.bg-success.text-white.fw-semibold Mis eventos
+          .card-body
+            .d-flex.justify-content-end.mb-3
+              a.btn.btn-primary.fw-semibold(href="/profesor/evento/nuevo")
+                i.bi.bi-plus-circle.me-1
+                | Nuevo evento
+            if eventos && eventos.length
+              .table-responsive
+                table.table.table-hover.table-striped.align-middle.shadow-sm.rounded
+                  thead.table-primary
+                    tr
+                      th.text-center Nombre del evento
+                      th.text-center Laboratorio
+                      th.text-center Fecha
+                      th.text-center PIN
+                      th.text-center Materiales
+                  tbody
+                    each evento in eventos
+                      tr
+                        td.text-center.fw-semibold #{evento.nombre}
+                        td.text-center #{evento.laboratorioNombre}
+                        td.text-center #{evento.fecha}
+                        td.text-center
+                          span.badge.bg-info.text-dark #{evento.pin}
+                        td.text-center #{evento.materialesNombres}
+            else
+              .alert.alert-info.mt-3 No tienes eventos registrados.
+
+        // Reservaciones de laboratorio asignadas
+        .card.mb-4.shadow-sm
+          .card-header.bg-info.text-white.fw-semibold Reservaciones de laboratorio asignadas
+          .card-body
+            if reservaciones && reservaciones.length
+              .table-responsive
+                table.table.table-bordered.table-hover.align-middle.shadow-sm.rounded
+                  thead.table-light
+                    tr
+                      th.text-center Laboratorio
+                      th.text-center Fecha
+                      th.text-center Hora inicio
+                      th.text-center Hora fin
+                      th.text-center Alumnos
+                      th.text-center Cupos ocupados
+                      th.text-center Cupos totales
+                      th.text-center Estado
+                  tbody
+                    each r in reservaciones
+                      tr
+                        td.text-center #{r.laboratorio}
+                        td.text-center #{r.fecha}
+                        td.text-center #{r.horaInicio}
+                        td.text-center #{r.horaFin}
+                        td.text-center
+                          if r.alumnos.length
+                            ul.mb-0.ps-3
+                              each a in r.alumnos
+                                li #{a}
+                          else
+                            span.text-muted Sin alumnos
+                        td.text-center #{r.ocupados}
+                        td.text-center #{r.cupos}
+                        td.text-center
+                          if r.estado === 'activa'
+                            span.badge.bg-success Activa
+                          else
+                            span.badge.bg-secondary #{r.estado}
+            else
+              .alert.alert-info.mt-3 No tienes reservaciones de laboratorio asignadas.
