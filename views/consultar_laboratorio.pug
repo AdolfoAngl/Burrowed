@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Consultar disponibilidad de laboratorios
+    #calendar-container.mt-4
+      // Aquí se renderizará el calendario con JS
+    .mt-4
+      #info-dia
+        // Aquí se mostrará la información del día seleccionado y el botón para reservar
+    script(src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js")
+    script(src="/js/calendario_lab.js")

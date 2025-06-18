@@ -41,3 +41,35 @@ block content
     else
       .alert.alert-info No hay eventos registrados.
     a.btn.btn-primary.mt-3(href="/profesor/evento/nuevo") Crear nuevo evento
+    h4.mt-4 Reservaciones de laboratorio asignadas
+    if reservaciones && reservaciones.length
+      table.table.table-bordered
+        thead
+          tr
+            th Laboratorio
+            th Fecha
+            th Hora inicio
+            th Hora fin
+            th Alumnos
+            th Cupos ocupados
+            th Cupos totales
+            th Estado
+        tbody
+          each r in reservaciones
+            tr
+              td #{r.laboratorio}
+              td #{r.fecha}
+              td #{r.horaInicio}
+              td #{r.horaFin}
+              td
+                if r.alumnos.length
+                  ul.mb-0
+                    each a in r.alumnos
+                      li= a
+                else
+                  | Sin reservas
+              td #{r.ocupados}
+              td #{r.cupos}
+              td #{r.estado}
+    else
+      .alert.alert-info No hay reservaciones asignadas.

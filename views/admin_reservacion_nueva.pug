@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Nuevo Laboratorio Extracurricular
+    .mb-4
+      a.btn.btn-outline-info(href="/admin/laboratorios-extracurriculares/historial") Ver historial de laboratorios extracurriculares
+    form(method="POST" action="/admin/laboratorios-extracurriculares/nuevo" class="mt-4")
+      .mb-3
+        label.form-label(for="laboratorioId") Laboratorio
+        select.form-control(name="laboratorioId" id="laboratorioId" required)
+          each lab in laboratorios
+            option(value=lab.id) #{lab.nombre} (#{lab.ubicacion})
+      .mb-3
+        label.form-label(for="profesorCorreo") Profesor responsable
+        select.form-control(name="profesorCorreo" id="profesorCorreo" required)
+          each prof in profesores
+            option(value=prof.correo) #{prof.nombre} (#{prof.correo})
+      .mb-3
+        label.form-label(for="fecha") Fecha
+        input.form-control(type="date" name="fecha" id="fecha" required)
+      .mb-3
+        label.form-label(for="horaInicio") Hora de inicio
+        input.form-control(type="time" name="horaInicio" id="horaInicio" required)
+      .mb-3
+        label.form-label(for="horaFin") Hora de fin
+        input.form-control(type="time" name="horaFin" id="horaFin" required)
+      .mb-3
+        label.form-label(for="cupos") Cupos disponibles
+        input.form-control(type="number" name="cupos" id="cupos" min="1" value="1" required)
+      button.btn.btn-success(type="submit") Crear disponibilidad
+      a.btn.btn-secondary.ms-2(href="/admin/dashboard") Cancelar

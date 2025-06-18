@@ -328,27 +328,71 @@ router.get('/dashboard-estudiante', async (req, res) => {
     });
   }
   // Próximos eventos accedidos por PIN
+  let eventosConSolicitar = [];
   if (req.session.eventosAccedidos && req.session.eventosAccedidos.length) {
     const Evento = (await import('../models/Evento.js')).default;
     const Material = (await import('../models/Material.js')).default;
     const Laboratorio = (await import('../models/Laboratorio.js')).default;
     const eventos = await Evento.findAll({ where: { id: req.session.eventosAccedidos } });
-    const eventosConNombres = await Promise.all(eventos.map(async e => {
+    eventosConSolicitar = await Promise.all(eventos.map(async e => {
       const lab = await Laboratorio.findByPk(e.laboratorioId);
       const materialesIds = e.materiales.split(',').map(id => parseInt(id));
       const mats = await Material.findAll({ where: { id: materialesIds } });
+      // Lógica de habilitación
+      let puedeSolicitar = false;
+      const now = new Date();
+      const fechaEvento = new Date(e.fecha);
+      // El evento está habilitado solo si la fecha y hora actual está dentro de la ventana del evento
+      if (
+        now >= fechaEvento &&
+        now <= new Date(fechaEvento.getTime() + 2 * 60 * 60 * 1000) // ventana de 2 horas por ejemplo
+      ) {
+        puedeSolicitar = true;
+      }
       return {
         ...e.dataValues,
         laboratorioNombre: lab ? lab.nombre : 'Desconocido',
-        fecha: e.fecha ? e.fecha.toLocaleString('es-MX') : '',
-        materialesNombres: mats.map(m => m.nombre).join(', ')
+        fecha: e.fecha ? new Date(e.fecha).toLocaleString('es-MX') : '',
+        materialesNombres: mats.map(m => m.nombre).join(', '),
+        puedeSolicitar
       };
     }));
-    res.locals.proximosEventos = eventosConNombres;
-  } else {
-    res.locals.proximosEventos = [];
   }
-  res.render('estudiante_dashboard', { nombre: usuario.nombre, correo, prestamos, proximosEventos: res.locals.proximosEventos });
+  res.locals.proximosEventos = eventosConSolicitar;
+  // Obtener reservaciones extracurriculares del alumno
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const reservacionesAlumno = await ReservacionAlumno.findAll({ where: { alumnoCorreo: correo, estado: 'activa' } });
+  const reservaciones = await Promise.all(reservacionesAlumno.map(async ra => {
+    const r = await Reservacion.findByPk(ra.reservacionId);
+    if (!r) return null;
+    const lab = await Laboratorio.findByPk(r.laboratorioId);
+    // Calcular si el botón debe estar habilitado
+    let puedeSolicitar = false;
+    const now = new Date();
+    if (r.fecha && r.horaInicio && r.horaFin) {
+      const fechaObj = new Date(r.fecha);
+      const fechaStr = fechaObj.toISOString().split('T')[0];
+      const hoyStr = now.toISOString().split('T')[0];
+      if (fechaStr === hoyStr) {
+        const horaActual = now.toTimeString().slice(0,5);
+        if (horaActual >= r.horaInicio.slice(0,5) && horaActual <= r.horaFin.slice(0,5)) {
+          puedeSolicitar = true;
+        }
+      }
+    }
+    return {
+      reservacionAlumnoId: ra.id,
+      laboratorio: lab ? lab.nombre : '',
+      fecha: r.fecha,
+      horaInicio: r.horaInicio,
+      horaFin: r.horaFin,
+      profesor: r.profesorCorreo,
+      estado: ra.estado,
+      puedeSolicitar
+    };
+  }));
+  res.render('estudiante_dashboard', { nombre: usuario.nombre, correo, prestamos, proximosEventos: res.locals.proximosEventos, reservaciones: reservaciones.filter(Boolean) });
 });
 
 // Ruta temporal para ver todos los usuarios registrados
@@ -457,7 +501,26 @@ router.get('/dashboard-profesor', async (req, res) => {
       materialesNombres: mats.map(m => m.nombre).join(', ')
     };
   }));
-  res.render('profesor_dashboard', { profesor, eventos: eventosConNombres });
+  // Obtener reservaciones extracurriculares asignadas a este profesor
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const reservaciones = await Reservacion.findAll({ where: { profesorCorreo: correo } });
+  // Mapear detalles de reservaciones
+  const reservacionesDetalle = await Promise.all(reservaciones.map(async r => {
+    const lab = await Laboratorio.findByPk(r.laboratorioId);
+    const alumnos = await ReservacionAlumno.findAll({ where: { reservacionId: r.id, estado: 'activa' } });
+    return {
+      laboratorio: lab ? lab.nombre : '',
+      fecha: r.fecha,
+      horaInicio: r.horaInicio,
+      horaFin: r.horaFin,
+      alumnos: alumnos.map(a => a.alumnoCorreo),
+      ocupados: alumnos.length,
+      cupos: r.cupos,
+      estado: r.estado
+    };
+  }));
+  res.render('profesor_dashboard', { profesor, eventos: eventosConNombres, reservaciones: reservacionesDetalle });
 });
 
 // Vista para crear nuevo evento (profesor)
@@ -471,7 +534,7 @@ router.get('/profesor/evento/nuevo', async (req, res) => {
 
 // Procesar creación de evento
 router.post('/profesor/evento/nuevo', async (req, res) => {
-  const { nombre, laboratorioId, fecha, materiales } = req.body;
+  const { nombre, laboratorioId, fecha, materiales, horaInicio, horaFin } = req.body;
   const profesorCorreo = req.session.correo;
   if (!profesorCorreo) return res.redirect('/login');
   // Generar PIN de 6 dígitos
@@ -485,6 +548,8 @@ router.post('/profesor/evento/nuevo', async (req, res) => {
     laboratorioId,
     profesorCorreo,
     fecha,
+    horaInicio: horaInicio ? horaInicio + ':00' : '00:00:00',
+    horaFin: horaFin ? horaFin + ':00' : '23:59:59',
     materiales: materialesStr,
     pin,
     pinExpiracion
@@ -509,6 +574,18 @@ router.post('/evento-pin', async (req, res) => {
   // Guardar el evento accedido en la sesión del alumno
   if (!req.session.eventosAccedidos) req.session.eventosAccedidos = [];
   if (!req.session.eventosAccedidos.includes(evento.id)) req.session.eventosAccedidos.push(evento.id);
+  // Obtener materiales del evento
+  const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
+  const materiales = await Material.findAll({ where: { id: materialesIds } });
+  res.render('evento_pin_materiales', { evento, materiales });
+});
+
+// Ruta para solicitar materiales de evento por PIN (alumno)
+router.get('/evento-pin-materiales/:id', async (req, res) => {
+  const Evento = (await import('../models/Evento.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const evento = await Evento.findByPk(req.params.id);
+  if (!evento) return res.send('Evento no encontrado');
   // Obtener materiales del evento
   const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
   const materiales = await Material.findAll({ where: { id: materialesIds } });
@@ -562,6 +639,175 @@ router.get('/admin/profesores/:id/eventos', async (req, res) => {
     };
   }));
   res.render('admin_profesor_eventos', { eventos: eventosConNombres });
+});
+
+// API para consultar disponibilidad de laboratorios por fecha
+router.get('/api/laboratorios/disponibilidad', async (req, res) => {
+  const fecha = req.query.fecha;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const Registro = (await import('../models/Registro.js')).default;
+  // Buscar laboratorios extracurriculares disponibles ese día
+  // Asegurarse de comparar solo la parte de la fecha (sin hora)
+  const disponibles = await Reservacion.findAll({
+    where: {
+      fecha: new Date(fecha),
+      estado: 'disponible'
+    }
+  });
+  // Buscar todos los laboratorios
+  const laboratorios = await Laboratorio.findAll();
+  // Mapear laboratorios disponibles con profesor asignado y horas
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const disponiblesLabs = await Promise.all(disponibles.map(async res => {
+    const lab = laboratorios.find(l => l.id === res.laboratorioId);
+    if (!lab) return null;
+    const ocupados = await ReservacionAlumno.count({ where: { reservacionId: res.id, estado: 'activa' } });
+    return {
+      id: lab.id,
+      nombre: lab.nombre,
+      profesor: res.profesorCorreo,
+      profesorCorreo: res.profesorCorreo,
+      reservacionId: res.id,
+      horaInicio: res.horaInicio,
+      horaFin: res.horaFin,
+      cupos: res.cupos,
+      ocupados
+    };
+  }));
+  res.json({ disponibles: disponiblesLabs.filter(Boolean) });
+});
+
+// Vista para consultar disponibilidad (alumno)
+router.get('/consultar-laboratorio', (req, res) => {
+  res.render('consultar_laboratorio');
+});
+
+// Procesar reservación de laboratorio
+router.post('/reservar-laboratorio', async (req, res) => {
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const { reservacionId } = req.body;
+  // Buscar la reservación disponible
+  const reservacion = await Reservacion.findByPk(reservacionId);
+  if (!reservacion || reservacion.estado !== 'disponible') {
+    return res.send('La reservación ya no está disponible.');
+  }
+  // Contar reservaciones activas
+  const count = await ReservacionAlumno.count({ where: { reservacionId, estado: 'activa' } });
+  if (count >= reservacion.cupos) {
+    return res.send('Ya no hay cupos disponibles para esta reservación.');
+  }
+  // Verificar que el alumno no tenga ya una reservación activa para este horario
+  const yaReservado = await ReservacionAlumno.findOne({ where: { reservacionId, alumnoCorreo: correo, estado: 'activa' } });
+  if (yaReservado) {
+    return res.send('Ya tienes una reservación activa para este laboratorio y horario.');
+  }
+  await ReservacionAlumno.create({ reservacionId, alumnoCorreo: correo, estado: 'activa' });
+  res.redirect('/dashboard-estudiante');
+});
+
+// Vista para crear nueva reservación (admin)
+router.get('/admin/reservaciones/nueva', async (req, res) => {
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Registro = (await import('../models/Registro.js')).default;
+  const laboratorios = await Laboratorio.findAll();
+  const profesores = await Registro.findAll({ where: { rol: 'profesor', estado: 'activo' } });
+  res.render('admin_reservacion_nueva', { laboratorios, profesores });
+});
+
+// Procesar nueva reservación (admin)
+router.post('/admin/reservaciones/nueva', async (req, res) => {
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const { alumnoCorreo, laboratorioId, profesorCorreo, fecha } = req.body;
+  await Reservacion.create({
+    alumnoCorreo,
+    laboratorioId,
+    profesorCorreo,
+    fecha,
+    estado: 'pendiente'
+  });
+  res.redirect('/admin/dashboard');
+});
+
+// Vista para crear nueva disponibilidad extracurricular (admin)
+router.get('/admin/laboratorios-extracurriculares/nuevo', async (req, res) => {
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Registro = (await import('../models/Registro.js')).default;
+  const laboratorios = await Laboratorio.findAll();
+  const profesores = await Registro.findAll({ where: { rol: 'profesor', estado: 'activo' } });
+  res.render('admin_reservacion_nueva', { laboratorios, profesores });
+});
+
+// Procesar nueva disponibilidad extracurricular (admin)
+router.post('/admin/laboratorios-extracurriculares/nuevo', async (req, res) => {
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  let { laboratorioId, profesorCorreo, fecha, horaInicio, horaFin, cupos } = req.body;
+  laboratorioId = parseInt(laboratorioId);
+  cupos = parseInt(cupos) || 1;
+  fecha = fecha ? new Date(fecha) : null;
+  horaInicio = horaInicio ? horaInicio + ':00' : null;
+  horaFin = horaFin ? horaFin + ':00' : null;
+  if (!laboratorioId || !profesorCorreo || !fecha || !horaInicio || !horaFin || !cupos) {
+    return res.send('Faltan datos obligatorios.');
+  }
+  await Reservacion.create({
+    laboratorioId,
+    profesorCorreo,
+    fecha,
+    horaInicio,
+    horaFin,
+    cupos,
+    estado: 'disponible'
+  });
+  res.redirect('/admin/dashboard');
+});
+
+// Historial de laboratorios extracurriculares (admin)
+router.get('/admin/laboratorios-extracurriculares/historial', async (req, res) => {
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Registro = (await import('../models/Registro.js')).default;
+  // Buscar todas las reservaciones extracurriculares
+  const reservaciones = await Reservacion.findAll({ order: [['fecha', 'DESC'], ['horaInicio', 'ASC']] });
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  // Mapear detalles
+  const detalle = await Promise.all(reservaciones.map(async r => {
+    const lab = await Laboratorio.findByPk(r.laboratorioId);
+    const profesor = await Registro.findOne({ where: { correo: r.profesorCorreo } });
+    const alumnos = await ReservacionAlumno.findAll({ where: { reservacionId: r.id, estado: 'activa' } });
+    // Buscar nombres de alumnos
+    const alumnosNombres = await Promise.all(alumnos.map(async a => {
+      const reg = await Registro.findOne({ where: { correo: a.alumnoCorreo } });
+      return reg ? { id: reg.id, nombre: `${reg.nombre} ${reg.apellido_paterno} ${reg.apellido_materno}` } : null;
+    }));
+    return {
+      laboratorio: lab ? lab.nombre : '',
+      fecha: r.fecha,
+      horaInicio: r.horaInicio,
+      horaFin: r.horaFin,
+      profesor: profesor ? profesor.nombre : r.profesorCorreo,
+      alumnos: alumnosNombres,
+      cupos: r.cupos,
+      ocupados: alumnos.length,
+      estado: r.estado
+    };
+  }));
+  res.render('admin_reservacion_historial', { reservaciones: detalle });
+});
+
+// Ruta para cancelar reservación (alumno)
+router.post('/cancelar-reservacion', async (req, res) => {
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const { reservacionAlumnoId } = req.body;
+  const reservacion = await ReservacionAlumno.findByPk(reservacionAlumnoId);
+  if (reservacion) {
+    reservacion.estado = 'cancelada';
+    await reservacion.save();
+  }
+  res.redirect('/dashboard-estudiante');
 });
 
 export default router; //Este siempre dejalo, no lo borres

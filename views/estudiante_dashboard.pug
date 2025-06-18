@@ -84,27 +84,66 @@ block content
     .card.mb-4
       .card-header.bg-info.text-white Eventos accedidos por PIN
       .card-body
-        table.table.table-striped
+        table.table.table-bordered
           thead
             tr
-              th Nombre del evento
               th Laboratorio
-              th Fecha
+              th Fecha y hora
+              th Profesor responsable
               th Materiales
+              th Acciones
           tbody
             each evento in proximosEventos
               tr
-                td #{evento.nombre}
                 td #{evento.laboratorioNombre}
                 td #{evento.fecha}
+                td #{evento.profesorCorreo}
                 td #{evento.materialesNombres}
+                td
+                  if evento.puedeSolicitar
+                    a.btn.btn-success.btn-sm(href=`/evento-pin-materiales/${evento.id}`) Solicitar materiales
+                  else
+                    button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
+
+  // Reservaciones de laboratorio extracurriculares
+  if (reservaciones && reservaciones.length)
+    .card.mb-4
+      .card-header.bg-warning.text-dark Reservaciones de laboratorio extracurriculares
+      .card-body
+        table.table.table-bordered
+          thead
+            tr
+              th Laboratorio
+              th Fecha
+              th Hora inicio
+              th Hora fin
+              th Profesor responsable
+              th Estado
+          tbody
+            each r in reservaciones
+              tr
+                td #{r.laboratorio}
+                td #{r.fecha}
+                td #{r.horaInicio}
+                td #{r.horaFin}
+                td #{r.profesor}
+                td #{r.estado}
+                td
+                  if r.puedeSolicitar
+                    a.btn.btn-success.btn-sm(href=`/solicitar-materiales?reservacion=${r.reservacionAlumnoId}`) Solicitar materiales
+                  else
+                    button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
+                td
+                  form(method="POST", action="/cancelar-reservacion")
+                    input(type="hidden", name="reservacionAlumnoId", value=r.reservacionAlumnoId)
+                    button.btn.btn-danger.btn-sm(type="submit") Cancelar
 
   // Sección ¿Qué quieres hacer hoy?
   .mt-5.text-center
     h4 ¿Qué quieres hacer hoy?
     .d-flex.justify-content-center.gap-3.mt-3
       a.btn.btn-success(href="/solicitar-prestamo") Solicitar préstamo de equipo
-      a.btn.btn-info(href="#") Consultar disponibilidad
+      a.btn.btn-info(href="/consultar-laboratorio") Consultar disponibilidad
 
   script(src="/bootstrap/js/bootstrap.bundle.min.js")
   script.

@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Historial de laboratorios extracurriculares
+    table.table.table-bordered.mt-4
+      thead
+        tr
+          th Laboratorio
+          th Fecha
+          th Hora inicio
+          th Hora fin
+          th Profesor responsable
+          th Alumnos
+          th Cupos ocupados
+          th Cupos totales
+          th Estado
+      tbody
+        if reservaciones.length
+          each r in reservaciones
+            tr
+              td #{r.laboratorio}
+              td #{r.fecha}
+              td #{r.horaInicio}
+              td #{r.horaFin}
+              td #{r.profesor}
+              td
+                if r.alumnos.length
+                  ul.mb-0
+                    each a in r.alumnos
+                      if a
+                        li
+                          a(href=`/admin/alumnos/${a.id}`) #{a.nombre}
+                else
+                  | Sin reservas
+              td #{r.ocupados}
+              td #{r.cupos}
+              td #{r.estado}
+        else
+          tr
+            td(colspan="9") No hay reservaciones registradas.
