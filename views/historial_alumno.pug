@@ -2,32 +2,42 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center Historial de Préstamos
+    h2.text-center.mb-4.text-primary.fw-bold Historial de Préstamos
     if prestamos.length
-      table.table.table-bordered.table-hover.mt-4
-        thead
-          tr
-            th Material
-            th Imagen
-            th Laboratorio
-            th Fecha de préstamo
-            th Fecha de devolución
-            th Estado devolución
-            th Observaciones
-        tbody
-          each p in prestamos
+      .table-responsive
+        table.table.table-hover.table-striped.align-middle.shadow-sm.rounded
+          thead.table-primary
             tr
-              td #{p.material}
-              td
-                if p.materialImagen
-                  img(src=`/materiales/${p.materialImagen}` alt=p.material width="60" class="rounded")
-                else
-                  span.text-muted Sin imagen
-              td #{p.laboratorio}
-              td #{p.fechaPrestamo}
-              td #{p.fechaDevolucion || 'Pendiente'}
-              td #{p.estadoDevolucion || 'Pendiente'}
-              td #{p.observaciones || 'Sin observaciones'}
+              th.text-center Material
+              th.text-center Imagen
+              th.text-center Laboratorio
+              th.text-center Fecha de préstamo
+              th.text-center Fecha de devolución
+              th.text-center Estado devolución
+              th.text-center Observaciones
+          tbody
+            each p in prestamos
+              tr
+                td.text-center.fw-semibold #{p.material}
+                td.text-center
+                  if p.materialImagen
+                    img(src=`/materiales/${p.materialImagen}` alt=p.material width="60" class="mx-auto d-block")
+                  else
+                    span.text-muted Sin imagen
+                td.text-center #{p.laboratorio}
+                td.text-center #{p.fechaPrestamo}
+                td.text-center #{p.fechaDevolucion || 'Pendiente'}
+                td.text-center
+                  if p.estadoDevolucion === 'Devuelto'
+                    span.badge.bg-success Devuelto
+                  else if p.estadoDevolucion
+                    span.badge.bg-warning.text-dark #{p.estadoDevolucion}
+                  else
+                    span.badge.bg-secondary Pendiente
+                td.text-center #{p.observaciones || 'Sin observaciones'}
     else
       .alert.alert-info.mt-4 No tienes préstamos registrados.
-    a.btn.btn-secondary.mt-4(href="/dashboard-estudiante") Volver al dashboard
+    .d-flex.justify-content-center
+      a.btn.btn-outline-primary.mt-4.px-4.fw-semibold(href="/dashboard-estudiante")
+        i.bi.bi-arrow-left.me-2
+        | Volver al dashboard
