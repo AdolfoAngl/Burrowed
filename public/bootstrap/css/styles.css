@@ -180,3 +180,48 @@ body {
     padding: 1.2rem 0.5rem 1.5rem 0.5rem;
   }
 }
+
+/* --- Historial de préstamos modal --- */
+#modalHistorialPrestamos .modal-content {
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 24px rgba(10,66,117,0.13);
+}
+#modalHistorialPrestamos .modal-header {
+  background: #397BBE;
+  color: #fff;
+  border-top-left-radius: 1.2rem;
+  border-top-right-radius: 1.2rem;
+}
+#modalHistorialPrestamos .modal-title {
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+#modalHistorialPrestamos .modal-body {
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+}
+#modalHistorialPrestamos table {
+  background: #f8fafc;
+  border-radius: 0.7rem;
+  overflow: hidden;
+}
+#modalHistorialPrestamos th {
+  background: #3C9DDC;
+  color: #fff;
+  font-weight: 500;
+}
+#modalHistorialPrestamos td {
+  color: #0A4275;
+}
+#modalHistorialPrestamos .btn-secondary {
+  background: #397BBE;
+  border: none;
+}
+@media (max-width: 600px) {
+  #modalHistorialPrestamos .modal-body {
+    padding: 1rem 0.3rem 1rem 0.3rem;
+  }
+  #modalHistorialPrestamos table {
+    font-size: 0.95rem;
+  }
+}

@@ -1,60 +1,147 @@
 extends layout
 
 block content
-  // Menú hamburguesa
-  nav.navbar.navbar-expand-lg.navbar-light.bg-light.mb-4
+  // Menú hamburguesa y barra superior
+  nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm.mb-4
     .container-fluid
-      a.navbar-brand(href="#")
-        img(src="/bootstrap/img/logo.png" alt="Logo" width="40" class="me-2")
-        | LabApp
+      a.navbar-brand(href="#")      
+        img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
+        span.fw-bold.text-white Burrowed
       button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
         span.navbar-toggler-icon
       #navbarNav.collapse.navbar-collapse
         ul.navbar-nav.ms-auto
           li.nav-item
-            a.nav-link(href="/perfil") Perfil
+            a.nav-link.text-white(href="/perfil")
+              i.bi.bi-person-circle.me-1
+              | Perfil
           li.nav-item
-            a.nav-link(href="#") Historial de préstamos
+            a.nav-link.text-white(href="/historial-alumno")
+              i.bi.bi-clock-history.me-1
+              | Historial de préstamos
           li.nav-item
-            a.nav-link(href="/logout") Cerrar sesión
+            a.nav-link.text-white(href="/logout")
+              i.bi.bi-box-arrow-right.me-1
+              | Cerrar sesión
 
-  // Encabezado de bienvenida
-  .text-center.mb-4
-    h2 Bienvenido #{nombre}
-    img(src="/bootstrap/img/logo.png" alt="Logo" width="60")
+  .container-xl
+    .row.justify-content-center
+      .col-12.col-lg-10
+        .text-center.mb-4
+          h2.fw-bold.text-primary Bienvenido #{nombre}
+        // Préstamos en curso
+        .card.mb-4.shadow-sm
+          .card-header.bg-primary.text-white.fw-semibold Préstamos en curso
+          .card-body
+            if prestamos.length
+              .accordion(id="prestamosAccordion")
+                each prestamo, idx in prestamos
+                  .accordion-item.mb-2
+                    h2.accordion-header(id=`heading${idx}`)
+                      button.accordion-button.collapsed(type="button", data-bs-toggle="collapse", data-bs-target=`#collapse${idx}` aria-expanded="false" aria-controls=`collapse${idx}`)
+                        img(src=prestamo.materialImagen ? `/materiales/${prestamo.materialImagen}` : '/bootstrap/img/logo.png', alt=prestamo.material, width="48", class="me-2 rounded")
+                        span.fw-semibold.text-success #{prestamo.material}
+                    .accordion-collapse.collapse(id=`collapse${idx}` aria-labelledby=`heading${idx}` data-bs-parent="#prestamosAccordion")
+                      .accordion-body
+                        p.mb-1 Laboratorio: #{prestamo.laboratorio}
+                        p.mb-1 Profesor responsable: #{prestamo.profesor || 'No asignado'}
+                        form(action=`/devolucion/${prestamo.id}` method="POST" class="devolucion-form mt-3")
+                          label.mb-1 Selecciona el estado de devolución:
+                          .form-check
+                            input.form-check-input(type="radio" name="estado" id=`buen_estado_${prestamo.id}` value="En buen estado" required)
+                            label.form-check-label(for=`buen_estado_${prestamo.id}`) En buen estado
+                          .form-check
+                            input.form-check-input(type="radio" name="estado" id=`observaciones_${prestamo.id}` value="Con observaciones")
+                            label.form-check-label(for=`observaciones_${prestamo.id}`) Con observaciones
+                          .form-check
+                            input.form-check-input(type="radio" name="estado" id=`defecto_${prestamo.id}` value="Con defecto")
+                            label.form-check-label(for=`defecto_${prestamo.id}`) Con defecto
+                          textarea.form-control.mt-2(name="observaciones" placeholder="Agrega observaciones si aplica")
+                          button.btn.btn-success.mt-2(type="submit") Confirmar devolución
+            else
+              p.text-muted No tienes préstamos en curso.
 
-  // Préstamos en curso
-  .card.mb-4
-    .card-header.bg-primary.text-white Préstamos en curso
-    .card-body
-      if prestamos.length
-        each prestamo in prestamos
-          .mb-3.p-3.border.rounded.bg-light
-            h5.mb-1 #{prestamo.material}
-            p.mb-1 Laboratorio: #{prestamo.laboratorio}
-            p.mb-1 Profesor responsable: #{prestamo.profesor || 'No asignado'}
-            form(action=`/devolucion/${prestamo.id}` method="POST" class="devolucion-form")
-              label.mb-1 Selecciona el estado de devolución:
-              .form-check
-                input.form-check-input(type="radio" name="estado" id=`buen_estado_${prestamo.id}` value="En buen estado" required)
-                label.form-check-label(for=`buen_estado_${prestamo.id}`) En buen estado
-              .form-check
-                input.form-check-input(type="radio" name="estado" id=`observaciones_${prestamo.id}` value="Con observaciones")
-                label.form-check-label(for=`observaciones_${prestamo.id}`) Con observaciones
-              .form-check
-                input.form-check-input(type="radio" name="estado" id=`defecto_${prestamo.id}` value="Con defecto")
-                label.form-check-label(for=`defecto_${prestamo.id}`) Con defecto
-              textarea.form-control.mt-2(name="observaciones" placeholder="Agrega observaciones si aplica")
-              button.btn.btn-success.mt-2(type="submit") Confirmar devolución
-      else
-        p.text-muted No tienes préstamos en curso.
+        // Acceso rápido a eventos por PIN
+        .card.mb-4.shadow-sm
+          .card-header.bg-success.text-white.fw-semibold Solicitar materiales por PIN de evento
+          .card-body.text-center
+            form(action="/evento-pin" method="POST" class="d-inline-block")
+              .mb-3
+                label.form-label(for="pin") Ingresa el PIN proporcionado por tu profesor
+                input.form-control(type="text" name="pin" id="pin" maxlength="6" required)
+              button.btn.btn-success(type="submit") Ingresar PIN de evento
 
-  // Acceso rápido a eventos por PIN
-  .card.mb-4
-    .card-header.bg-success.text-white Solicitar materiales por PIN de evento
-    .card-body
-      form(action="/evento-pin" method="GET")
-        button.btn.btn-success(type="submit") Ingresar PIN de evento
+        // Próximos eventos accedidos por PIN
+        if (proximosEventos && proximosEventos.length)
+          .card.mb-4.shadow-sm
+            .card-header.bg-info.text-white.fw-semibold Eventos accedidos por PIN
+            .card-body.p-0
+              .table-responsive
+                table.table.table-bordered.mb-0
+                  thead
+                    tr
+                      th Laboratorio
+                      th Fecha y hora
+                      th Profesor responsable
+                      th Materiales
+                      th Acciones
+                  tbody
+                    each evento in proximosEventos
+                      tr
+                        td #{evento.laboratorioNombre}
+                        td #{evento.fecha}
+                        td #{evento.profesorCorreo}
+                        td #{evento.materialesNombres}
+                        td
+                          if evento.puedeSolicitar && !evento.yaSolicitado
+                            a.btn.btn-success.btn-sm(href=`/evento-pin-materiales/${evento.id}`) Solicitar materiales
+                          else
+                            button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
+
+        // Reservaciones de laboratorio extracurriculares
+        if (reservaciones && reservaciones.length)
+          .card.mb-4.shadow-sm
+            .card-header.bg-warning.text-dark.fw-semibold Reservaciones de laboratorio extracurriculares
+            .card-body.p-0
+              .table-responsive
+                table.table.table-bordered.mb-0
+                  thead
+                    tr
+                      th Laboratorio
+                      th Fecha
+                      th Hora inicio
+                      th Hora fin
+                      th Profesor responsable
+                      th Estado
+                      th Acciones
+                  tbody
+                    each r in reservaciones
+                      tr
+                        td #{r.laboratorio}
+                        td #{r.fecha}
+                        td #{r.horaInicio}
+                        td #{r.horaFin}
+                        td #{r.profesor}
+                        td #{r.estado}
+                        td.d-flex.flex-column.flex-md-row.gap-2
+                          if r.puedeSolicitar
+                            a.btn.btn-success.btn-sm(href=`/solicitar-materiales?reservacion=${r.reservacionAlumnoId}`) Solicitar materiales
+                          else
+                            button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
+                          form(method="POST", action="/cancelar-reservacion", class="d-inline")
+                            input(type="hidden", name="reservacionAlumnoId", value=r.reservacionAlumnoId)
+                            button.btn.btn-danger.btn-sm(type="submit") Cancelar
+
+        // Sección ¿Qué quieres hacer hoy?
+        .mt-5.text-center
+          h4.fw-semibold.text-primary ¿Qué quieres hacer hoy?
+          .d-flex.flex-column.flex-md-row.justify-content-center.gap-3.mt-3
+            a.btn.btn-success.px-4.py-2(href="/solicitar-prestamo")
+              i.bi.bi-plus-circle.me-2
+              | Solicitar préstamo de equipo
+            a.btn.btn-info.px-4.py-2(href="/consultar-laboratorio")
+              i.bi.bi-calendar-check.me-2
+              | Consultar disponibilidad de Laboratorios 
 
   // Modal para devolución (estructura, la lógica JS se agregará después)
   #modalDevolucion.modal.fade(tabindex="-1" aria-hidden="true")
@@ -79,93 +166,32 @@ block content
               textarea.form-control(name="observaciones" id="observaciones")
             button.btn.btn-primary(type="submit") Enviar devolución
 
-  // Próximos eventos accedidos por PIN
-  if (proximosEventos && proximosEventos.length)
-    .card.mb-4
-      .card-header.bg-info.text-white Eventos accedidos por PIN
-      .card-body
-        table.table.table-bordered
-          thead
-            tr
-              th Laboratorio
-              th Fecha y hora
-              th Profesor responsable
-              th Materiales
-              th Acciones
-          tbody
-            each evento in proximosEventos
-              tr
-                td #{evento.laboratorioNombre}
-                td #{evento.fecha}
-                td #{evento.profesorCorreo}
-                td #{evento.materialesNombres}
-                td
-                  if evento.puedeSolicitar
-                    a.btn.btn-success.btn-sm(href=`/evento-pin-materiales/${evento.id}`) Solicitar materiales
-                  else
-                    button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
+  // Modal para historial de préstamos
+  #modalHistorialPrestamos.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          h5.modal-title Historial de préstamos
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body#modalHistorialPrestamosBody
+          // Aquí se cargará el historial dinámicamente
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cerrar
 
-  // Reservaciones de laboratorio extracurriculares
-  if (reservaciones && reservaciones.length)
-    .card.mb-4
-      .card-header.bg-warning.text-dark Reservaciones de laboratorio extracurriculares
-      .card-body
-        table.table.table-bordered
-          thead
-            tr
-              th Laboratorio
-              th Fecha
-              th Hora inicio
-              th Hora fin
-              th Profesor responsable
-              th Estado
-          tbody
-            each r in reservaciones
-              tr
-                td #{r.laboratorio}
-                td #{r.fecha}
-                td #{r.horaInicio}
-                td #{r.horaFin}
-                td #{r.profesor}
-                td #{r.estado}
-                td
-                  if r.puedeSolicitar
-                    a.btn.btn-success.btn-sm(href=`/solicitar-materiales?reservacion=${r.reservacionAlumnoId}`) Solicitar materiales
-                  else
-                    button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
-                td
-                  form(method="POST", action="/cancelar-reservacion")
-                    input(type="hidden", name="reservacionAlumnoId", value=r.reservacionAlumnoId)
-                    button.btn.btn-danger.btn-sm(type="submit") Cancelar
-
-  // Sección ¿Qué quieres hacer hoy?
-  .mt-5.text-center
-    h4 ¿Qué quieres hacer hoy?
-    .d-flex.justify-content-center.gap-3.mt-3
-      a.btn.btn-success(href="/solicitar-prestamo") Solicitar préstamo de equipo
-      a.btn.btn-info(href="/consultar-laboratorio") Consultar disponibilidad
-
+  // Scripts para modales y fetch
   script(src="/bootstrap/js/bootstrap.bundle.min.js")
   script.
-    // Mostrar campo de observaciones si corresponde
     document.addEventListener('DOMContentLoaded', function() {
-      var modal = document.getElementById('modalDevolucion');
-      if (modal) {
-        modal.addEventListener('show.bs.modal', function (event) {
-          var button = event.relatedTarget;
-          var prestamoId = button.getAttribute('data-id');
-          var material = button.getAttribute('data-material');
-          document.getElementById('prestamoId').value = prestamoId;
-          document.getElementById('material').value = material;
-        });
-        var estadoSelect = document.querySelector('select[name="estado"]');
-        var observacionesDiv = document.getElementById('observacionesDiv');
-        estadoSelect.addEventListener('change', function() {
-          if (this.value === 'observaciones' || this.value === 'defecto') {
-            observacionesDiv.classList.remove('d-none');
-          } else {
-            observacionesDiv.classList.add('d-none');
-          }
-        });
-      }
-    });
+      // Modal Historial de Préstamos con fetch
+      const btnHistorial = document.getElementById('btnHistorialPrestamos');
+      if (btnHistorial) {
+        btnHistorial.addEventListener('click', function(e) {
+          e.preventDefault();
+          fetch('/historial-prestamos')
+            .then(res => res.text())
+            .then(html => {
+              document.getElementById('modalHistorialPrestamosBody').innerHTML = html;
+              const modal = new bootstrap.Modal(document.getElementById('modalHistorialPrestamos'));
+              modal.show();
+            });
+     

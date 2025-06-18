@@ -15,7 +15,11 @@ block content
         input.form-control(type="text" name="apellido_materno" id="apellido_materno" required value=apellido_materno)
       .mb-3
         label.form-label(for="carrera") Carrera
-        input.form-control(type="text" name="carrera" id="carrera" required value=carrera)
+        select.form-control(name="carrera" id="carrera" required)
+          option(value="" disabled selected)= carrera ? carrera : 'Selecciona tu carrera'
+          option(value="ISC" selected=carrera==='ISC') ISC
+          option(value="IIA" selected=carrera==='IIA') IIA
+          option(value="LSD" selected=carrera==='LSD') LSD
       .mb-3
         label.form-label(for="credencial") Cambiar credencial escolar (opcional)
         input.form-control(type="file" name="credencial" id="credencial" accept="image/*,application/pdf")

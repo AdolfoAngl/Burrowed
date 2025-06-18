@@ -27,7 +27,10 @@ export const procesarRegistro = [
     try {
       const { nombre, apellido_paterno, apellido_materno, correo: correoOriginal, carrera, password } = req.body;
       const correo = correoOriginal.toLowerCase();
-      const credencial = req.file ? req.file.filename : null;
+      if (!req.file) {
+        return res.render('registro', { error: 'Debes adjuntar tu credencial escolar (PDF o imagen).' });
+      }
+      const credencial = req.file.filename;
       // Guardar correo en sesión solo si es alumno
       if (correo.endsWith('@alumno.ipn.mx')) {
         await Registro.create({ nombre, apellido_paterno, apellido_materno, correo, carrera, password, credencial, rol: 'alumno', estado: 'activo' });
@@ -40,8 +43,7 @@ export const procesarRegistro = [
         res.render('login', { error: 'Correo no válido para registro.' });
       }
     } catch (error) {
-      console.log(error);
-      res.render('registro', { error: 'Hubo un error al registrar. Intenta de nuevo.' });
+      res.render('registro', { error: 'Error al registrar usuario.' });
     }
   }
 ];

@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Historial de Préstamos
+    if prestamos.length
+      table.table.table-bordered.table-hover.mt-4
+        thead
+          tr
+            th Material
+            th Imagen
+            th Laboratorio
+            th Fecha de préstamo
+            th Fecha de devolución
+            th Estado devolución
+            th Observaciones
+        tbody
+          each p in prestamos
+            tr
+              td #{p.material}
+              td
+                if p.materialImagen
+                  img(src=`/materiales/${p.materialImagen}` alt=p.material width="60" class="rounded")
+                else
+                  span.text-muted Sin imagen
+              td #{p.laboratorio}
+              td #{p.fechaPrestamo}
+              td #{p.fechaDevolucion || 'Pendiente'}
+              td #{p.estadoDevolucion || 'Pendiente'}
+              td #{p.observaciones || 'Sin observaciones'}
+    else
+      .alert.alert-info.mt-4 No tienes préstamos registrados.
+    a.btn.btn-secondary.mt-4(href="/dashboard-estudiante") Volver al dashboard

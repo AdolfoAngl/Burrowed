@@ -322,6 +322,7 @@ router.get('/dashboard-estudiante', async (req, res) => {
     prestamos.push({
       id: p.id,
       material: material ? material.nombre : '',
+      materialImagen: material ? material.imagen : '',
       laboratorio: laboratorio ? laboratorio.nombre : '',
       profesor: '', // Puedes agregar lógica para asignar profesor
       estado: p.estado
@@ -340,6 +341,7 @@ router.get('/dashboard-estudiante', async (req, res) => {
       const mats = await Material.findAll({ where: { id: materialesIds } });
       // Lógica de habilitación
       let puedeSolicitar = false;
+      let yaSolicitado = false;
       const now = new Date();
       const fechaEvento = new Date(e.fecha);
       // El evento está habilitado solo si la fecha y hora actual está dentro de la ventana del evento
@@ -349,12 +351,24 @@ router.get('/dashboard-estudiante', async (req, res) => {
       ) {
         puedeSolicitar = true;
       }
+      // Verificar si el alumno ya tiene préstamo para este evento
+      const Prestamo = (await import('../models/Prestamo.js')).default;
+      const prestamoExistente = await Prestamo.findOne({
+        where: {
+          alumnoCorreo: correo,
+          laboratorioId: e.laboratorioId,
+          profesor: e.profesorCorreo,
+          estado: 'en curso'
+        }
+      });
+      if (prestamoExistente) yaSolicitado = true;
       return {
         ...e.dataValues,
         laboratorioNombre: lab ? lab.nombre : 'Desconocido',
         fecha: e.fecha ? new Date(e.fecha).toLocaleString('es-MX') : '',
         materialesNombres: mats.map(m => m.nombre).join(', '),
-        puedeSolicitar
+        puedeSolicitar,
+        yaSolicitado
       };
     }));
   }
@@ -808,6 +822,24 @@ router.post('/cancelar-reservacion', async (req, res) => {
     await reservacion.save();
   }
   res.redirect('/dashboard-estudiante');
+});
+
+// Historial de préstamos para estudiante (modal)
+router.get('/historial-prestamos', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.status(401).send('No autorizado');
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  // Buscar todos los préstamos del alumno
+  const prestamos = await Prestamo.findAll({ where: { alumnoCorreo: correo } });
+  // Mapear los datos para la vista parcial
+  const prestamosData = prestamos.map(p => ({
+    material: p.materialNombre || p.materialId || '-',
+    laboratorio: p.laboratorioNombre || p.laboratorioId || '-',
+    fechaPrestamo: p.fechaPrestamo ? p.fechaPrestamo.toLocaleString('es-MX') : '-',
+    fechaDevolucion: p.fechaDevolucion ? p.fechaDevolucion.toLocaleString('es-MX') : '-',
+    estado: p.estado
+  }));
+  res.render('partials/historial_prestamos_estudiante', { prestamos: prestamosData, layout: false });
 });
 
 export default router; //Este siempre dejalo, no lo borres
