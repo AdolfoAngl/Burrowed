@@ -842,4 +842,30 @@ router.get('/historial-prestamos', async (req, res) => {
   res.render('partials/historial_prestamos_estudiante', { prestamos: prestamosData, layout: false });
 });
 
+// Historial real del alumno
+router.get('/historial-alumno', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  // Buscar todos los préstamos del alumno
+  const prestamosDB = await Prestamo.findAll({ where: { alumnoCorreo: correo } });
+  // Mapear los datos para la vista
+  const prestamos = await Promise.all(prestamosDB.map(async p => {
+    const material = await Material.findByPk(p.materialId);
+    const laboratorio = await Laboratorio.findByPk(p.laboratorioId);
+    return {
+      material: material ? material.nombre : 'Desconocido',
+      materialImagen: material ? material.imagen : '',
+      laboratorio: laboratorio ? laboratorio.nombre : 'Desconocido',
+      fechaPrestamo: p.createdAt ? p.createdAt.toLocaleString('es-MX') : '',
+      fechaDevolucion: p.updatedAt && p.estado !== 'en curso' ? p.updatedAt.toLocaleString('es-MX') : null,
+      estadoDevolucion: p.estado !== 'en curso' ? p.estado : null,
+      observaciones: p.observaciones || ''
+    };
+  }));
+  res.render('historial_alumno', { prestamos });
+});
+
 export default router; //Este siempre dejalo, no lo borres

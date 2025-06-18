@@ -1,29 +1,6 @@
 extends layout
 
 block content
-  // Menú hamburguesa y barra superior
-  nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm.mb-4
-    .container-fluid
-      a.navbar-brand(href="#")      
-        img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
-        span.fw-bold.text-white Burrowed
-      button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
-        span.navbar-toggler-icon
-      #navbarNav.collapse.navbar-collapse
-        ul.navbar-nav.ms-auto
-          li.nav-item
-            a.nav-link.text-white(href="/perfil")
-              i.bi.bi-person-circle.me-1
-              | Perfil
-          li.nav-item
-            a.nav-link.text-white(href="/historial-alumno")
-              i.bi.bi-clock-history.me-1
-              | Historial de préstamos
-          li.nav-item
-            a.nav-link.text-white(href="/logout")
-              i.bi.bi-box-arrow-right.me-1
-              | Cerrar sesión
-
   .container-xl
     .row.justify-content-center
       .col-12.col-lg-10
@@ -166,18 +143,6 @@ block content
               textarea.form-control(name="observaciones" id="observaciones")
             button.btn.btn-primary(type="submit") Enviar devolución
 
-  // Modal para historial de préstamos
-  #modalHistorialPrestamos.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog.modal-lg
-      .modal-content
-        .modal-header
-          h5.modal-title Historial de préstamos
-          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
-        .modal-body#modalHistorialPrestamosBody
-          // Aquí se cargará el historial dinámicamente
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cerrar
-
   // Scripts para modales y fetch
   script(src="/bootstrap/js/bootstrap.bundle.min.js")
   script.
@@ -194,4 +159,5 @@ block content
               const modal = new bootstrap.Modal(document.getElementById('modalHistorialPrestamos'));
               modal.show();
             });
-     
+      }
+    });

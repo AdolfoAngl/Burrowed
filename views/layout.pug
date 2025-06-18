@@ -10,4 +10,26 @@ html(lang="es")
       body { background: #f8f9fa; font-family: 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'; }
       .container { max-width: 600px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 1.5rem; box-shadow: 0 0 24px rgba(0,0,0,0.08); }
   body
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm.mb-4
+      .container-fluid
+        a.navbar-brand(href="/dashboard-estudiante")
+          img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
+          span.fw-bold.text-white Burrowed
+        button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
+          span.navbar-toggler-icon
+        #navbarNav.collapse.navbar-collapse
+          ul.navbar-nav.ms-auto
+            li.nav-item
+              a.nav-link.text-white(href="/perfil")
+                i.bi.bi-person-circle.me-1
+                | Perfil
+            li.nav-item
+              a.nav-link.text-white(href="/historial-alumno")
+                i.bi.bi-clock-history.me-1
+                | Historial de préstamos
+            li.nav-item
+              a.nav-link.text-white(href="/logout")
+                i.bi.bi-box-arrow-right.me-1
+                | Cerrar sesión
     block content
+    script(src="/bootstrap/js/bootstrap.bundle.min.js")
