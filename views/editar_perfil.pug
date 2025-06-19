@@ -23,5 +23,8 @@ block content
       .mb-3
         label.form-label(for="credencial") Cambiar credencial escolar (opcional)
         input.form-control(type="file" name="credencial" id="credencial" accept="image/*,application/pdf")
+      .mb-3
+        label.form-label(for="password") Nueva contraseña (opcional)
+        input.form-control(type="password" name="password" id="password" placeholder="Dejar en blanco para no cambiar")
       button.btn.btn-success(type="submit") Guardar cambios
       a.btn.btn-secondary.ms-2(href="/perfil") Cancelar

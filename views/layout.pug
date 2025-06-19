@@ -9,37 +9,51 @@ html(lang="es")
     style.
       body { background: #f8f9fa; font-family: 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'; }
       .container { max-width: 600px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 1.5rem; box-shadow: 0 0 24px rgba(0,0,0,0.08); }
+      .navbar-admin {
+        background: #111 !important;
+      }
+      .navbar-admin .navbar-brand, .navbar-admin .nav-link, .navbar-admin .fw-bold {
+        color: #fff !important;
+      }
+      .navbar-admin .nav-link.text-warning {
+        color: #fff !important;
+      }
+      .navbar-admin .nav-link.active, .navbar-admin .nav-link:focus, .navbar-admin .nav-link:hover {
+        color: #ffc107 !important;
+      }
   body
     if typeof correo !== 'undefined' && correo === 'admin@burrowed.mx'
-      nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.shadow-sm.mb-4
+      nav.navbar.navbar-expand-lg.navbar-admin.shadow-sm.mb-4
         .container-fluid
           a.navbar-brand(href="/admin/dashboard")
             img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
-            span.fw-bold.text-warning Admin Burrowed
+            span.fw-bold Admin Burrowed
           button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
             span.navbar-toggler-icon
           #navbarNav.collapse.navbar-collapse
             ul.navbar-nav.ms-auto
               li.nav-item
-                a.nav-link.text-warning(href="/admin/alumnos")
+                a.nav-link(href="/admin/alumnos")
                   i.bi.bi-people-fill.me-1
                   | Alumnos
               li.nav-item
-                a.nav-link.text-warning(href="/admin/profesores")
+                a.nav-link(href="/admin/profesores")
                   i.bi.bi-person-badge-fill.me-1
                   | Profesores
               li.nav-item
-                a.nav-link.text-warning(href="/admin/laboratorios")
+                a.nav-link(href="/admin/laboratorios")
                   i.bi.bi-building.me-1
                   | Laboratorios
               li.nav-item
-                a.nav-link.text-warning(href="/admin/laboratorios-extracurriculares/nuevo")
+                a.nav-link(href="/admin/laboratorios-extracurriculares/nuevo")
                   i.bi.bi-calendar-check.me-1
                   | Extracurriculares
               li.nav-item
-                a.nav-link.text-warning(href="/logout")
+                a.nav-link(href="/logout")
                   i.bi.bi-box-arrow-right.me-1
                   | Cerrar sesión
+    else if typeof correo !== 'undefined' && correo.endsWith('@ipn.mx') && correo !== 'admin@burrowed.mx'
+      include profesor_navbar.pug
     else
       nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm.mb-4
         .container-fluid

@@ -17,8 +17,7 @@ block content
         input.form-control(type="datetime-local" name="fecha" id="fecha" required)
       .mb-3
         label.form-label Materiales requeridos
-        each mat in materiales
-          .form-check
-            input.form-check-input(type="checkbox" name="materiales" id=`mat_${mat.id}` value=mat.id)
-            label.form-check-label(for=`mat_${mat.id}`) #{mat.nombre}
+        #materiales-container
+          // Aquí se cargarán los materiales dinámicamente
       button.btn.btn-primary(type="submit") Crear evento
+  script(src="/js/evento_materiales.js")

@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Editar perfil de Profesor
+    .card.mb-4
+      .card-body
+        form(method="POST", action="/profesor/perfil/editar")
+          .mb-3
+            label.form-label(for="nombre") Nombre
+            input.form-control(type="text" name="nombre" id="nombre" required value=profesor.nombre)
+          .mb-3
+            label.form-label(for="correo") Correo
+            input.form-control(type="email" name="correo" id="correo" required value=profesor.correo readonly)
+          .mb-3
+            label.form-label(for="carrera") Carrera
+            input.form-control(type="text" name="carrera" id="carrera" required value=profesor.carrera)
+          .mb-3
+            label.form-label(for="password") Nueva contraseña (opcional)
+            input.form-control(type="password" name="password" id="password" placeholder="Dejar en blanco para no cambiar")
+          button.btn.btn-primary(type="submit") Guardar cambios
+          a.btn.btn-secondary.ms-2(href="/profesor/perfil") Cancelar

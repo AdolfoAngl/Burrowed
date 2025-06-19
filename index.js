@@ -6,6 +6,7 @@ import User from './models/User.js';
 import Laboratorio from './models/Laboratorio.js';
 import Material from './models/Material.js';
 import sessionMiddleware from './config/session.js';
+import EventoAccedido from './models/EventoAccedido.js';
 
 // import csrf from 'csurf'
 // import cookieParser from 'cookie-parser';

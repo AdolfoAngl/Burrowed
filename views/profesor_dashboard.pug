@@ -1,75 +1,69 @@
 extends layout
 
 block content
-  .container.mt-5
-    h2.text-center Dashboard de Profesor
-    .card.mb-4
-      .card-body
-        h4 Bienvenido, #{profesor.nombre}
-        p
-          b Correo: 
-          | #{profesor.correo}
-        p
-          b Carrera: 
-          | #{profesor.carrera}
-        p
-          b Estado: 
-          if profesor.estado === 'activo'
-            span.badge.bg-success Activo
-          else if profesor.estado === 'pendiente'
-            span.badge.bg-warning.text-dark Pendiente
-          else
-            span.badge.bg-danger Rechazado
-    h4.mt-4 Mis eventos
-    if eventos && eventos.length
-      table.table.table-striped
-        thead
-          tr
-            th Nombre del evento
-            th Laboratorio
-            th Fecha
-            th PIN
-            th Materiales
-        tbody
-          each evento in eventos
-            tr
-              td #{evento.nombre}
-              td #{evento.laboratorioNombre}
-              td #{evento.fecha}
-              td #{evento.pin}
-              td #{evento.materialesNombres}
-    else
-      .alert.alert-info No hay eventos registrados.
-    a.btn.btn-primary.mt-3(href="/profesor/evento/nuevo") Crear nuevo evento
-    h4.mt-4 Reservaciones de laboratorio asignadas
+  .container-xl.mt-5
+    h2.text-center.mb-4.text-primary Dashboard de Profesor
+    .row.g-4
+      .col-12.col-md-4
+        .card.shadow-sm
+          .card-body
+            h4 Bienvenido, #{profesor.nombre}
+            p.mb-1
+              b Correo:
+              | #{profesor.correo}
+            p.mb-1
+              b Carrera:
+              | #{profesor.carrera}
+            p.mb-1
+              b Estado:
+              if profesor.estado === 'activo'
+                span.badge.bg-success Activo
+              else if profesor.estado === 'pendiente'
+                span.badge.bg-warning.text-dark Pendiente
+              else
+                span.badge.bg-danger Rechazado
+      .col-12.col-md-8
+        .card.shadow-sm
+          .card-header.bg-primary.text-white Mis eventos
+          .card-body.p-0
+            if eventos && eventos.length
+              .table-responsive
+                table.table.table-striped.table-hover.align-middle
+                  thead
+                    tr
+                      th Nombre del evento
+                      th Laboratorio
+                      th Fecha
+                      th PIN
+                      th Materiales
+                  tbody
+                    each evento in eventos
+                      tr
+                        td #{evento.nombre}
+                        td #{evento.laboratorioNombre}
+                        td #{evento.fecha}
+                        td #{evento.pin}
+                        td #{evento.materialesNombres}
+            else
+              p.text-muted.mt-3 No tienes eventos registrados.
+    h4.mt-5.mb-3.text-primary Reservaciones recientes
     if reservaciones && reservaciones.length
-      table.table.table-bordered
-        thead
-          tr
-            th Laboratorio
-            th Fecha
-            th Hora inicio
-            th Hora fin
-            th Alumnos
-            th Cupos ocupados
-            th Cupos totales
-            th Estado
-        tbody
-          each r in reservaciones
+      .table-responsive
+        table.table.table-bordered.table-sm
+          thead
             tr
-              td #{r.laboratorio}
-              td #{r.fecha}
-              td #{r.horaInicio}
-              td #{r.horaFin}
-              td
-                if r.alumnos.length
-                  ul.mb-0
-                    each a in r.alumnos
-                      li= a
-                else
-                  | Sin reservas
-              td #{r.ocupados}
-              td #{r.cupos}
-              td #{r.estado}
+              th Laboratorio
+              th Fecha
+              th Hora inicio
+              th Hora fin
+              th Estado
+          tbody
+            each r in reservaciones
+              tr
+                td #{r.laboratorio}
+                td #{r.fecha}
+                td #{r.horaInicio}
+                td #{r.horaFin}
+                td #{r.estado}
     else
-      .alert.alert-info No hay reservaciones asignadas.
+      p.text-muted No tienes reservaciones recientes.

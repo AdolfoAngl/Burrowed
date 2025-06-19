@@ -1,10 +1,10 @@
 extends layout
 
 block content
-  .container.mt-5
-    h2.text-center Historial de laboratorios extracurriculares
-    table.table.table-bordered.mt-4
-      thead
+  h2.text-center.mt-5.mb-4 Historial de laboratorios extracurriculares
+  .table-responsive
+    table.table.table-bordered.table-hover.shadow-sm
+      thead.table-warning
         tr
           th Laboratorio
           th Fecha
@@ -26,7 +26,7 @@ block content
               td #{r.profesor}
               td
                 if r.alumnos.length
-                  ul.mb-0
+                  ul.mb-0.ps-3
                     each a in r.alumnos
                       if a
                         li

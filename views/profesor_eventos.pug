@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  .container-xl.mt-5
+    h2.text-center.mb-4.text-primary Mis eventos
+    .card.shadow-sm
+      .card-body
+        if eventos && eventos.length
+          .table-responsive
+            table.table.table-striped.table-hover.align-middle
+              thead
+                tr
+                  th Nombre del evento
+                  th Laboratorio
+                  th Fecha
+                  th PIN
+                  th Materiales
+              tbody
+                each evento in eventos
+                  tr
+                    td #{evento.nombre}
+                    td #{evento.laboratorioNombre}
+                    td #{evento.fecha}
+                    td #{evento.pin}
+                    td #{evento.materialesNombres}
+        else
+          p.text-muted.mt-3 No tienes eventos registrados.

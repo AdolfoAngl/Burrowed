@@ -1,0 +1,29 @@
+nav.navbar.navbar-expand-lg.navbar-dark(style="background: #003366;")
+  .container-fluid
+    a.navbar-brand(href="/profesor/dashboard")
+      img(src="/bootstrap/img/burrowed_logo_blanco.png" alt="Logo" width="64" class="me-2 align-middle")
+      span.fw-bold.text-white Profesor Burrowed
+    button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
+      span.navbar-toggler-icon
+    #navbarNav.collapse.navbar-collapse
+      ul.navbar-nav.ms-auto
+        li.nav-item
+          a.nav-link.text-white(href="/profesor/dashboard")
+            i.bi.bi-house-door-fill.me-1
+            | Inicio
+        li.nav-item
+          a.nav-link.text-white(href="/profesor/evento/nuevo")
+            i.bi.bi-calendar-plus.me-1
+            | Nuevo evento
+        li.nav-item
+          a.nav-link.text-white(href="/profesor/eventos")
+            i.bi.bi-calendar-event.me-1
+            | Mis eventos
+        li.nav-item
+          a.nav-link.text-white(href="/profesor/perfil")
+            i.bi.bi-person-circle.me-1
+            | Perfil
+        li.nav-item
+          a.nav-link.text-white(href="/logout")
+            i.bi.bi-box-arrow-right.me-1
+            | Cerrar sesión

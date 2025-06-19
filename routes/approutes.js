@@ -8,6 +8,7 @@ import Laboratorio from '../models/Laboratorio.js';
 import Material from '../models/Material.js';
 import Prestamo from '../models/Prestamo.js';
 import Evento from '../models/Evento.js';
+import EventoAccedido from '../models/EventoAccedido.js';
 
 // Controlador para login
 const loginController = (req, res) => {
@@ -227,7 +228,7 @@ const uploadPerfil = multer({ storage: storagePerfil });
 
 router.post('/perfil/editar', uploadPerfil.single('credencial'), async (req, res) => {
   const correo = req.session.correo;
-  const { nombre, apellido_paterno, apellido_materno, carrera } = req.body;
+  const { nombre, apellido_paterno, apellido_materno, carrera, password } = req.body;
   const Registro = (await import('../models/Registro.js')).default;
   const usuario = await Registro.findOne({ where: { correo } });
   if (!usuario) return res.redirect('/login');
@@ -236,6 +237,9 @@ router.post('/perfil/editar', uploadPerfil.single('credencial'), async (req, res
   usuario.apellido_materno = apellido_materno;
   usuario.carrera = carrera;
   if (req.file) usuario.credencial = req.file.filename;
+  if (password && password.trim() !== '') {
+    usuario.password = password;
+  }
   await usuario.save();
   res.redirect(`/perfil`);
 });
@@ -361,11 +365,16 @@ router.get('/dashboard-estudiante', async (req, res) => {
   }
   // Próximos eventos accedidos por PIN
   let eventosConSolicitar = [];
-  if (req.session.eventosAccedidos && req.session.eventosAccedidos.length) {
+  let eventosAccedidosIds = [];
+  if (correo) {
+    const accedidos = await EventoAccedido.findAll({ where: { alumnoCorreo: correo } });
+    eventosAccedidosIds = accedidos.map(e => e.eventoId);
+  }
+  if (eventosAccedidosIds.length) {
     const Evento = (await import('../models/Evento.js')).default;
     const Material = (await import('../models/Material.js')).default;
     const Laboratorio = (await import('../models/Laboratorio.js')).default;
-    const eventos = await Evento.findAll({ where: { id: req.session.eventosAccedidos } });
+    const eventos = await Evento.findAll({ where: { id: eventosAccedidosIds } });
     eventosConSolicitar = await Promise.all(eventos.map(async e => {
       const lab = await Laboratorio.findByPk(e.laboratorioId);
       const materialesIds = e.materiales.split(',').map(id => parseInt(id));
@@ -416,14 +425,16 @@ router.get('/dashboard-estudiante', async (req, res) => {
     let puedeSolicitar = false;
     const now = new Date();
     if (r.fecha && r.horaInicio && r.horaFin) {
-      const fechaObj = new Date(r.fecha);
-      const fechaStr = fechaObj.toISOString().split('T')[0];
-      const hoyStr = now.toISOString().split('T')[0];
-      if (fechaStr === hoyStr) {
-        const horaActual = now.toTimeString().slice(0,5);
-        if (horaActual >= r.horaInicio.slice(0,5) && horaActual <= r.horaFin.slice(0,5)) {
-          puedeSolicitar = true;
-        }
+      // Unir fecha con horaInicio y horaFin para comparar correctamente
+      const fechaStr = typeof r.fecha === 'string' ? r.fecha : r.fecha.toISOString().split('T')[0];
+      const inicio = new Date(`${fechaStr}T${r.horaInicio}`);
+      let fin = new Date(`${fechaStr}T${r.horaFin}`);
+      // Si la hora de fin es menor o igual a la de inicio, sumar un día a fin
+      if (fin <= inicio) {
+        fin.setDate(fin.getDate() + 1);
+      }
+      if (now >= inicio && now <= fin) {
+        puedeSolicitar = true;
       }
     }
     return {
@@ -616,9 +627,10 @@ router.post('/evento-pin', async (req, res) => {
   if (!evento || new Date() > evento.pinExpiracion) {
     return res.render('evento_pin_ingresar', { error: 'PIN inválido o expirado.' });
   }
-  // Guardar el evento accedido en la sesión del alumno
+  // Guardar el evento accedido en la base de datos y en sesión
   if (!req.session.eventosAccedidos) req.session.eventosAccedidos = [];
   if (!req.session.eventosAccedidos.includes(evento.id)) req.session.eventosAccedidos.push(evento.id);
+  await EventoAccedido.findOrCreate({ where: { alumnoCorreo: req.session.correo, eventoId: evento.id } });
   // Obtener materiales del evento
   const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
   const materiales = await Material.findAll({ where: { id: materialesIds } });
@@ -645,9 +657,10 @@ router.post('/evento-pin/solicitar/:eventoId', async (req, res) => {
   if (!evento) return res.redirect('/evento-pin');
   const correo = req.session.correo;
   if (!correo) return res.redirect('/login');
-  // Guardar el evento accedido en la sesión del alumno
+  // Guardar el evento accedido en la base de datos y en sesión
   if (!req.session.eventosAccedidos) req.session.eventosAccedidos = [];
   if (!req.session.eventosAccedidos.includes(evento.id)) req.session.eventosAccedidos.push(evento.id);
+  await EventoAccedido.findOrCreate({ where: { alumnoCorreo: correo, eventoId: evento.id } });
   // Materiales del evento
   const materialesIds = evento.materiales.split(',').map(id => parseInt(id));
   for (const matId of materialesIds) {
@@ -897,6 +910,142 @@ router.get('/historial-alumno', async (req, res) => {
     };
   }));
   res.render('historial_alumno', { prestamos });
+});
+
+// Vista para solicitar materiales de una reservación extracurricular
+router.get('/solicitar-materiales', async (req, res) => {
+  const { reservacion } = req.query;
+  if (!reservacion) return res.redirect('/dashboard-estudiante');
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  const ra = await ReservacionAlumno.findByPk(reservacion);
+  if (!ra) return res.redirect('/dashboard-estudiante');
+  const r = await Reservacion.findByPk(ra.reservacionId);
+  if (!r) return res.redirect('/dashboard-estudiante');
+  const laboratorio = await Laboratorio.findByPk(r.laboratorioId);
+  const materiales = await Material.findAll({ where: { laboratorioId: laboratorio.id } });
+  res.render('solicitar_materiales', { laboratorio, materiales, reservacionId: reservacion });
+});
+
+// Procesar solicitud de materiales para reservación extracurricular
+router.post('/solicitar-materiales/:reservacionId/enviar', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const { reservacionId } = req.params;
+  const ReservacionAlumno = (await import('../models/ReservacionAlumno.js')).default;
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const ra = await ReservacionAlumno.findByPk(reservacionId);
+  if (!ra) return res.redirect('/dashboard-estudiante');
+  const r = await Reservacion.findByPk(ra.reservacionId);
+  if (!r) return res.redirect('/dashboard-estudiante');
+  const materiales = req.body['materiales[]'] || req.body.materiales;
+  if (!materiales) return res.redirect(`/solicitar-materiales?reservacion=${reservacionId}`);
+  const materialesArray = Array.isArray(materiales) ? materiales : [materiales];
+  const Prestamo = (await import('../models/Prestamo.js')).default;
+  for (const matId of materialesArray) {
+    await Prestamo.create({
+      alumnoCorreo: correo,
+      laboratorioId: r.laboratorioId,
+      materialId: matId,
+      estado: 'en curso',
+      reservacionAlumnoId: reservacionId
+    });
+  }
+  res.redirect(`/dashboard-estudiante`);
+});
+
+// API para obtener materiales de un laboratorio
+router.get('/api/materiales/:laboratorioId', async (req, res) => {
+  const { laboratorioId } = req.params;
+  try {
+    const materiales = await Material.findAll({ where: { laboratorioId } });
+    res.json(materiales);
+  } catch (err) {
+    res.status(500).json([]);
+  }
+});
+
+// Dashboard profesor
+router.get('/profesor/dashboard', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findOne({ where: { correo } });
+  if (!profesor) return res.redirect('/login');
+  // Eventos del profesor
+  const Evento = (await import('../models/Evento.js')).default;
+  const eventos = await Evento.findAll({ where: { profesorCorreo: correo } });
+  // Laboratorio y materiales para cada evento
+  const Material = (await import('../models/Material.js')).default;
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  for (const e of eventos) {
+    const lab = await Laboratorio.findByPk(e.laboratorioId);
+    e.laboratorioNombre = lab ? lab.nombre : 'Desconocido';
+    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
+    const mats = await Material.findAll({ where: { id: materialesIds } });
+    e.materialesNombres = mats.map(m => m.nombre).join(', ');
+  }
+  // Reservaciones recientes (puedes ajustar la lógica según tu modelo)
+  const Reservacion = (await import('../models/Reservacion.js')).default;
+  const reservaciones = await Reservacion.findAll({ where: { profesorCorreo: correo }, order: [['fecha', 'DESC']], limit: 5 });
+  res.render('profesor_dashboard', { profesor, eventos, reservaciones });
+});
+
+// Listado de eventos del profesor
+router.get('/profesor/eventos', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const Evento = (await import('../models/Evento.js')).default;
+  const eventos = await Evento.findAll({ where: { profesorCorreo: correo } });
+  const Laboratorio = (await import('../models/Laboratorio.js')).default;
+  const Material = (await import('../models/Material.js')).default;
+  for (const e of eventos) {
+    const lab = await Laboratorio.findByPk(e.laboratorioId);
+    e.laboratorioNombre = lab ? lab.nombre : 'Desconocido';
+    const materialesIds = e.materiales.split(',').map(id => parseInt(id));
+    const mats = await Material.findAll({ where: { id: materialesIds } });
+    e.materialesNombres = mats.map(m => m.nombre).join(', ');
+  }
+  res.render('profesor_eventos', { eventos });
+});
+
+// Perfil del profesor
+router.get('/profesor/perfil', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findOne({ where: { correo } });
+  if (!profesor) return res.redirect('/login');
+  res.render('profesor_perfil', { profesor });
+});
+
+// Editar perfil de profesor (GET)
+router.get('/profesor/perfil/editar', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findOne({ where: { correo } });
+  if (!profesor) return res.redirect('/login');
+  res.render('profesor_perfil_editar', { profesor });
+});
+
+// Editar perfil de profesor (POST)
+router.post('/profesor/perfil/editar', async (req, res) => {
+  const correo = req.session.correo;
+  if (!correo) return res.redirect('/login');
+  const { nombre, carrera, password } = req.body;
+  const Registro = (await import('../models/Registro.js')).default;
+  const profesor = await Registro.findOne({ where: { correo } });
+  if (!profesor) return res.redirect('/login');
+  profesor.nombre = nombre;
+  profesor.carrera = carrera;
+  if (password && password.trim() !== '') {
+    profesor.password = password;
+  }
+  await profesor.save();
+  res.redirect('/profesor/perfil');
 });
 
 export default router; //Este siempre dejalo, no lo borres

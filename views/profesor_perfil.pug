@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center Perfil de Profesor
+    .card.mb-4
+      .card-body
+        h4 Datos del profesor
+        p
+          b Nombre:
+          | #{profesor.nombre}
+        p
+          b Correo:
+          | #{profesor.correo}
+        p
+          b Carrera:
+          | #{profesor.carrera}
+        p
+          b Estado:
+          if profesor.estado === 'activo'
+            span.badge.bg-success Activo
+          else if profesor.estado === 'pendiente'
+            span.badge.bg-warning.text-dark Pendiente
+          else
+            span.badge.bg-danger Rechazado
+        p
+          b Credencial:
+          if profesor.credencial
+            a(href=`/credenciales/${profesor.credencial}` target="_blank") Ver credencial
+          else
+            | No disponible
+    a.btn.btn-primary.mt-3(href="/profesor/perfil/editar") Editar información

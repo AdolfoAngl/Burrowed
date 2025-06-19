@@ -71,7 +71,10 @@ block content
                         td #{evento.materialesNombres}
                         td
                           if evento.puedeSolicitar && !evento.yaSolicitado
-                            a.btn.btn-success.btn-sm(href=`/evento-pin-materiales/${evento.id}`) Solicitar materiales
+                            form(method="POST", action=`/evento-pin/solicitar/${evento.id}`)
+                              button.btn.btn-success.btn-sm(type="submit") Solicitar materiales
+                          else if evento.yaSolicitado
+                            button.btn.btn-secondary.btn-sm(disabled) Materiales ya solicitados
                           else
                             button.btn.btn-secondary.btn-sm(disabled) Solicitar materiales
 

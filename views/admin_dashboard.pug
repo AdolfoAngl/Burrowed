@@ -1,64 +1,54 @@
-doctype html
-html(lang="es")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Dashboard Admin
-    link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
-    style.
-      body { background: #f8f9fa; font-family: 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'; }
-      .dashboard-container { max-width: 1200px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 1.5rem; box-shadow: 0 0 24px rgba(0,0,0,0.08); }
-      .section-title { color: #0d6efd; margin-top: 2rem; }
-      .alert-full { background: #ffcccc; color: #b30000; font-weight: bold; }
-  body
-    .container-xl.dashboard-admin.mt-5
-      h1.mb-4.text-center.text-primary Dashboard de Administrador
-      .row.g-4.mb-4
-        .col-md-3
-          .card.shadow-sm.border-0.bg-gradient.bg-primary.text-white.text-center
-            .card-body
-              i.bi.bi-people-fill.display-4.mb-2
-              h5.mb-1 Total Alumnos
-              h2.fw-bold #{totalAlumnos}
-        .col-md-3
-          .card.shadow-sm.border-0.bg-gradient.bg-success.text-white.text-center
-            .card-body
-              i.bi.bi-person-badge-fill.display-4.mb-2
-              h5.mb-1 Total Profesores
-              h2.fw-bold #{totalProfesores}
-        .col-md-3
-          .card.shadow-sm.border-0.bg-gradient.bg-info.text-white.text-center
-            .card-body
-              i.bi.bi-building.display-4.mb-2
-              h5.mb-1 Laboratorios
-              h2.fw-bold #{totalLaboratorios}
-        .col-md-3
-          .card.shadow-sm.border-0.bg-gradient.bg-warning.text-dark.text-center
-            .card-body
-              i.bi.bi-calendar-check.display-4.mb-2
-              h5.mb-1 Reservaciones
-              h2.fw-bold #{totalReservaciones}
-      .row.g-4
-        .col-md-3
-          a.btn.btn-outline-primary.w-100.py-3(href="/admin/alumnos")
-            i.bi.bi-people-fill.me-2
-            | Gestionar Alumnos
-        .col-md-3
-          a.btn.btn-outline-success.w-100.py-3(href="/admin/profesores")
-            i.bi.bi-person-badge-fill.me-2
-            | Gestionar Profesores
-        .col-md-3
-          a.btn.btn-outline-info.w-100.py-3(href="/admin/laboratorios")
-            i.bi.bi-building.me-2
-            | Gestionar Laboratorios
-        .col-md-3
-          a.btn.btn-outline-warning.w-100.py-3(href="/admin/laboratorios-extracurriculares/nuevo")
-            i.bi.bi-calendar-check.me-2
-            | Laboratorios Extracurriculares
-      .row.mt-5
-        .col-12
-          .alert.alert-info.text-center.shadow-sm
-            | Bienvenido al ecosistema de administración. Selecciona una sección para gestionar los recursos de la plataforma.
+extends layout
+
+block content
+  .container-xl.dashboard-admin.mt-5
+    h1.mb-4.text-center.text-primary Dashboard de Administrador
+    .row.g-4.mb-4
+      .col-md-3
+        .card.shadow-sm.border-0.bg-gradient.bg-primary.text-white.text-center
+          .card-body
+            i.bi.bi-people-fill.display-4.mb-2
+            h5.mb-1 Total Alumnos
+            h2.fw-bold #{totalAlumnos}
+      .col-md-3
+        .card.shadow-sm.border-0.bg-gradient.bg-success.text-white.text-center
+          .card-body
+            i.bi.bi-person-badge-fill.display-4.mb-2
+            h5.mb-1 Total Profesores
+            h2.fw-bold #{totalProfesores}
+      .col-md-3
+        .card.shadow-sm.border-0.bg-gradient.bg-info.text-white.text-center
+          .card-body
+            i.bi.bi-building.display-4.mb-2
+            h5.mb-1 Laboratorios
+            h2.fw-bold #{totalLaboratorios}
+      .col-md-3
+        .card.shadow-sm.border-0.bg-gradient.bg-warning.text-dark.text-center
+          .card-body
+            i.bi.bi-calendar-check.display-4.mb-2
+            h5.mb-1 Reservaciones
+            h2.fw-bold #{totalReservaciones}
+    .row.g-4
+      .col-md-3
+        a.btn.btn-outline-primary.w-100.py-3(href="/admin/alumnos")
+          i.bi.bi-people-fill.me-2
+          | Gestionar Alumnos
+      .col-md-3
+        a.btn.btn-outline-success.w-100.py-3(href="/admin/profesores")
+          i.bi.bi-person-badge-fill.me-2
+          | Gestionar Profesores
+      .col-md-3
+        a.btn.btn-outline-info.w-100.py-3(href="/admin/laboratorios")
+          i.bi.bi-building.me-2
+          | Gestionar Laboratorios
+      .col-md-3
+        a.btn.btn-outline-warning.w-100.py-3(href="/admin/laboratorios-extracurriculares/nuevo")
+          i.bi.bi-calendar-check.me-2
+          | Laboratorios Extracurriculares
+    .row.mt-5
+      .col-12
+        .alert.alert-info.text-center.shadow-sm
+          | Bienvenido al ecosistema de administración. Selecciona una sección para gestionar los recursos de la plataforma.
     style.
       .dashboard-admin { max-width: 1300px; margin: 0 auto; }
       .dashboard-admin .card { border-radius: 1.2rem; }

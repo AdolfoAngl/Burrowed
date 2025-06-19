@@ -3,7 +3,7 @@ extends layout
 block content
   .container.mt-5
     h2.text-center Materiales disponibles en #{laboratorio.nombre}
-    form(method="POST" action=`/solicitar-prestamo/${laboratorio.id}/enviar`)
+    form(method="POST" action=reservacionId ? `/solicitar-materiales/${reservacionId}/enviar` : `/solicitar-prestamo/${laboratorio.id}/enviar`)
       if materiales && materiales.length
         .row.mt-4
           each mat in materiales
