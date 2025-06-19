@@ -225,3 +225,32 @@ body {
     font-size: 0.95rem;
   }
 }
+
+/* Ajuste para el contenedor de inventario de laboratorio */
+.inventario-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
+.inventario-row {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.card.shadow {
+  min-width: 250px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .inventario-row {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .card.shadow {
+    min-width: unset;
+  }
+}
